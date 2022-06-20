@@ -9,6 +9,7 @@ import cn.edu.thssdb.schema.Database;
 import cn.edu.thssdb.schema.Manager;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 /**
  * When use SQL sentence, e.g., "SELECT avg(A) FROM TableX;"
@@ -49,6 +50,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         if (ctx.use_db_stmt() != null)  return new QueryResult(visitUse_db_stmt(ctx.use_db_stmt()));
         if (ctx.create_table_stmt() != null) return new QueryResult(visitCreate_table_stmt(ctx.create_table_stmt()));
         if (ctx.drop_table_stmt() != null) return new QueryResult(visitDrop_table_stmt(ctx.drop_table_stmt()));
+        if (ctx.show_table_stmt() != null) return new QueryResult(visitShow_table_stmt(ctx.show_table_stmt()));
         if (ctx.insert_stmt() != null) return new QueryResult(visitInsert_stmt(ctx.insert_stmt()));
         if (ctx.delete_stmt() != null) return new QueryResult(visitDelete_stmt(ctx.delete_stmt()));
         if (ctx.update_stmt() != null) return new QueryResult(visitUpdate_stmt(ctx.update_stmt()));
@@ -117,6 +119,18 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
     @Override
     public String visitCreate_table_stmt(SQLParser.Create_table_stmtContext ctx) {return null;}
 
+    @Override
+    public String visitShow_table_stmt(SQLParser.Show_table_stmtContext ctx) {
+        try {
+            return GetCurrentDB().toString();
+        }
+        catch (Exception e) {
+            return e.getMessage();
+        }
+    }
+
+    @Override
+    public String visitShow_db_stmt(SQLParser.Show_db_stmtContext ctx) {return null;}
     /**
      * TODO
      表格项插入
@@ -136,7 +150,12 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      表格项更新
      */
     @Override
-    public String visitUpdate_stmt(SQLParser.Update_stmtContext ctx) {return null;}
+    public String visitUpdate_stmt(SQLParser.Update_stmtContext ctx) {
+        Database curr_db = GetCurrentDB();
+        String table_name = ctx.table_name().getText().toLowerCase();
+        String col_name = ctx.column_name().getText().toLowerCase();
+        
+    }
 
     /**
      * TODO
