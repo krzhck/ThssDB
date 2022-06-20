@@ -1,7 +1,4 @@
 .idea/
 target/
 src/main/thrift/
-<<<<<<< HEAD
 src/main/java/rpc/thrift/
-=======
->>>>>>> 58a2ba02400f7eafd4d911ece2b51478adeab8d9
