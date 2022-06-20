@@ -251,25 +251,23 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
     public String visitInsert_stmt(SQLParser.Insert_stmtContext ctx) {
         Database the_database = GetCurrentDB();
         String table_name = ctx.table_name().getText().toLowerCase();
-        ArrayList<String> tmp_column_names = new ArrayList<>();
+        ArrayList<String> column_names_list = new ArrayList<>();
         if (ctx.column_name() != null && ctx.column_name().size() != 0) {
-//            for (int i = 0; i < context.column_name().size(); i++)
             for (SQLParser.Column_nameContext item : ctx.column_name()) {
-                tmp_column_names.add(item.getText().toLowerCase());
+                column_names_list.add(item.getText().toLowerCase());
             }
         }
-        String[] column_names = tmp_column_names.toArray(new String[tmp_column_names.size()]);
-        for (String i:column_names){
-            System.out.println(i);
-        }
+        String[] column_names = column_names_list.toArray(new String[column_names_list.size()]);
 
         for (SQLParser.Value_entryContext item : ctx.value_entry()) {
             String[] values = visitValue_entry(item);
-            the_database.insert(table_name, null, values);
-            for (String i:values){
-                System.out.println(i);
+            try {
+                the_database.insert(table_name, column_names, values);
+            } catch (Exception e) {
+                return e.toString();
             }
         }
+
         return "Inserted " + ctx.value_entry().size() + " rows.";
     }
 
