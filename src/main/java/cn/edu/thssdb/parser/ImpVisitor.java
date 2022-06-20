@@ -233,7 +233,6 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         String table_name = ctx.table_name().getText().toLowerCase();
         ArrayList<String> tmp_column_names = new ArrayList<>();
         if (ctx.column_name() != null && ctx.column_name().size() != 0) {
-//            for (int i = 0; i < context.column_name().size(); i++)
             for (SQLParser.Column_nameContext item : ctx.column_name()) {
                 tmp_column_names.add(item.getText().toLowerCase());
             }
@@ -245,11 +244,16 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
 
         for (SQLParser.Value_entryContext item : ctx.value_entry()) {
             String[] values = visitValue_entry(item);
-            the_database.insert(table_name, null, values);
+            try {
+                the_database.insert(table_name, column_names, values);
+            } catch (Exception e) {
+                return e.toString();
+            }
             for (String i:values){
                 System.out.println(i);
             }
         }
+
         return "Inserted " + ctx.value_entry().size() + " rows.";
     }
 
