@@ -1,14 +1,14 @@
 package cn.edu.thssdb.schema;
 
-<<<<<<< HEAD
+
 import cn.edu.thssdb.exception.DuplicateTableException;
 import cn.edu.thssdb.exception.FileIOException;
 import cn.edu.thssdb.exception.PageNotExistException;
 import cn.edu.thssdb.exception.TableNotExistException;
 import cn.edu.thssdb.query.Logic;
-=======
+
 import cn.edu.thssdb.exception.*;
->>>>>>> dev-mzk
+
 import cn.edu.thssdb.query.QueryResult;
 import cn.edu.thssdb.query.QueryTable;
 import cn.edu.thssdb.common.Global;
