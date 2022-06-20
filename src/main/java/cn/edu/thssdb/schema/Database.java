@@ -8,6 +8,7 @@ import cn.edu.thssdb.common.Global;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
@@ -211,6 +212,13 @@ public class Database {
   // Other utils.
   public String getDatabaseName() { return this.databaseName; }
   public String getTableInfo(String tableName) { return get(tableName).toString(); }
+  public ArrayList<String> getTableNameList() {
+    ArrayList<String> tableNames = new ArrayList<>();
+    for (Map.Entry<String, Table> entry : tableMap.entrySet()) {
+      tableNames.add(entry.getValue().tableName);
+    }
+    return tableNames;
+  }
   public String toString() {
     if (this.tableMap.isEmpty()) return "{\n[DatabaseName: " + databaseName + "]\n" + Global.DATABASE_EMPTY + "}\n";
     StringBuilder result = new StringBuilder("{\n[DatabaseName: " + databaseName + "]\n");

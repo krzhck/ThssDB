@@ -16,6 +16,7 @@ import javax.management.AttributeNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.StringJoiner;
 
 /**
  * When use SQL sentence, e.g., "SELECT avg(A) FROM TableX;"
@@ -56,6 +57,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         if (ctx.use_db_stmt() != null)  return new QueryResult(visitUse_db_stmt(ctx.use_db_stmt()));
         if (ctx.create_table_stmt() != null) return new QueryResult(visitCreate_table_stmt(ctx.create_table_stmt()));
         if (ctx.drop_table_stmt() != null) return new QueryResult(visitDrop_table_stmt(ctx.drop_table_stmt()));
+        if (ctx.show_meta_stmt() != null) return new QueryResult(visitShow_meta_stmt(ctx.show_meta_stmt()));
         if (ctx.insert_stmt() != null) return new QueryResult(visitInsert_stmt(ctx.insert_stmt()));
         if (ctx.delete_stmt() != null) return new QueryResult(visitDelete_stmt(ctx.delete_stmt()));
         if (ctx.update_stmt() != null) return new QueryResult(visitUpdate_stmt(ctx.update_stmt()));
@@ -221,7 +223,18 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
     }
 
 
+    @Override
+    public String visitShow_table_stmt(SQLParser.Show_table_stmtContext ctx) {
+        try {
+            return GetCurrentDB().toString();
+        }
+        catch (Exception e) {
+            return e.getMessage();
+        }
+    }
 
+    @Override
+    public String visitShow_db_stmt(SQLParser.Show_db_stmtContext ctx) {return null;}
 
     /**
      * TODO
@@ -231,16 +244,13 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
     public String visitInsert_stmt(SQLParser.Insert_stmtContext ctx) {
         Database the_database = GetCurrentDB();
         String table_name = ctx.table_name().getText().toLowerCase();
-        ArrayList<String> tmp_column_names = new ArrayList<>();
+        ArrayList<String> column_names_list = new ArrayList<>();
         if (ctx.column_name() != null && ctx.column_name().size() != 0) {
             for (SQLParser.Column_nameContext item : ctx.column_name()) {
-                tmp_column_names.add(item.getText().toLowerCase());
+                column_names_list.add(item.getText().toLowerCase());
             }
         }
-        String[] column_names = tmp_column_names.toArray(new String[tmp_column_names.size()]);
-        for (String i:column_names){
-            System.out.println(i);
-        }
+        String[] column_names = column_names_list.toArray(new String[column_names_list.size()]);
 
         for (SQLParser.Value_entryContext item : ctx.value_entry()) {
             String[] values = visitValue_entry(item);
@@ -249,12 +259,19 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
             } catch (Exception e) {
                 return e.toString();
             }
-            for (String i:values){
-                System.out.println(i);
-            }
         }
 
         return "Inserted " + ctx.value_entry().size() + " rows.";
+    }
+
+    @Override
+    public String visitShow_meta_stmt(SQLParser.Show_meta_stmtContext ctx) {
+        try {
+            return GetCurrentDB().getTableInfo(ctx.table_name().getText());
+        }
+        catch (Exception e) {
+            return e.getMessage();
+        }
     }
 
     public String[] visitValue_entry(SQLParser.Value_entryContext context) {
