@@ -4,6 +4,9 @@ import cn.edu.thssdb.exception.*;
 import cn.edu.thssdb.index.BPlusTree;
 import cn.edu.thssdb.common.Global;
 import cn.edu.thssdb.common.Pair;
+import cn.edu.thssdb.query.Logic;
+import cn.edu.thssdb.query.MultiRow;
+import cn.edu.thssdb.type.BoolType;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -22,7 +25,13 @@ public class Table implements Iterable<Row> {
   public String tableName;
   public ArrayList<Column> columns;
   public BPlusTree<Cell, Row> index;
+  private ArrayList<Long> xLocks;
+  private ArrayList<Long> sLocks;
   private int primaryIndex;
+
+  private boolean isPropertyModified;
+
+  private int topLock;
 
   // ADD lock variables for S, X locks and etc here.
 
@@ -53,9 +62,13 @@ public class Table implements Iterable<Row> {
       }
     }
     if(this.primaryIndex < 0)
-      throw new MultiPrimaryKeyException(this.tableName);
+      throw new NoPrimaryKeyException(this.tableName);
 
     // TODO initiate lock status.
+    this.xLocks = new ArrayList<>();
+    this.sLocks = new ArrayList<>();
+    this.topLock = 0;
+    isPropertyModified = true;
 
     recover();
   }
@@ -88,25 +101,43 @@ public class Table implements Iterable<Row> {
   public void insert(Row row) {
     try {
       // TODO lock control
+      lock.writeLock().lock();
       this.checkRowValidInTable(row);
       if(this.containsRow(row))
         throw new DuplicateKeyException();
       this.index.put(row.getEntries().get(this.primaryIndex), row);
       }finally {
       // TODO lock control
+      lock.writeLock().unlock();
     }
   }
 
   public void delete(Row row) {
     try {
       // TODO lock control.
+      lock.writeLock().lock();
+      isPropertyModified = true;
       this.checkRowValidInTable(row);
       if(!this.containsRow(row))
         throw new KeyNotExistException();
       this.index.remove(row.getEntries().get(this.primaryIndex));
     }finally {
       // TODO lock control.
+      lock.writeLock().unlock();
     }
+  }
+
+  public String delete(Logic logic) {
+    int cnt = 0;
+    isPropertyModified = true;
+    for (Row row : this) {
+      MultiRow multiRow = new MultiRow(row, this);
+      if (logic == null || logic.exec(multiRow) == BoolType.TRUE) {
+        delete(row);
+        cnt++;
+      }
+    }
+    return "Deleted " + cnt + " items.";
   }
 
   public void update(Cell primaryCell, Row newRow) {
@@ -191,6 +222,31 @@ public class Table implements Iterable<Row> {
     finally {
       // TODO lock control.
     }
+  }
+
+  public String getTableName() {
+    return tableName;
+  }
+
+  public ArrayList<Column> getColumns() {
+    return columns;
+  }
+
+  public int getXLock(long session) {
+    int flag = 0;
+    if (topLock == 2) {
+      if (xLocks.contains(session)) flag = 0;
+      else flag = -1;
+    } else
+    if (topLock == 1) {
+      flag = -1;
+    } else
+    if (topLock == 0) {
+      xLocks.add(session);
+      topLock = 2;
+      flag = 1;
+    }
+    return flag;
   }
 
 

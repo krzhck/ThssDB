@@ -11,5 +11,4 @@ public class AttributeNotFoundException extends RuntimeException {
     public String getMessage() {
         return "Exception occurs: Attribute " + attribute_name + " Not Found!";
     }
-
 }

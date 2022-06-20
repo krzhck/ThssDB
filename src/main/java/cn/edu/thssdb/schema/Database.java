@@ -1,8 +1,14 @@
 package cn.edu.thssdb.schema;
 
+
 import cn.edu.thssdb.exception.DuplicateTableException;
 import cn.edu.thssdb.exception.FileIOException;
+import cn.edu.thssdb.exception.PageNotExistException;
 import cn.edu.thssdb.exception.TableNotExistException;
+import cn.edu.thssdb.query.Logic;
+
+import cn.edu.thssdb.exception.*;
+
 import cn.edu.thssdb.query.QueryResult;
 import cn.edu.thssdb.query.QueryTable;
 import cn.edu.thssdb.common.Global;
@@ -157,16 +163,34 @@ public class Database {
 
   public void insert(String tableName, String[] columnNames, String[] values){
     Table table = get(tableName);
-    if (columnNames == null) {
-      ArrayList<Cell> cell_list = new ArrayList<Cell>();
+    ArrayList<Cell> cell_list = new ArrayList<Cell>();
+    if (columnNames.length == 0) {
       int len = values.length;
       for (int i = 0; i < len; i++){
         cell_list.add(Column.parseEntry(values[i], table.columns.get(i)));
       }
-      table.insert(new Row(cell_list));
     } else {
-
+      int len = columnNames.length;
+      if (len != values.length){
+        throw new RuntimeException("The numbers of columns and values given don't match!");
+      }
+      for (Column column : table.columns){
+        int index = -1;
+        for (int i = 0; i < len; i++){
+          if (column.getColumnName().equals(columnNames[i])){
+            index = i;
+          }
+        }
+        if (index == -1){
+          cell_list.add(new Cell(null));
+        }
+        else{
+          cell_list.add(Column.parseEntry(values[index], column));
+        }
+      }
     }
+    table.insert(new Row(cell_list));
+    table.persist();
   }
 
   // TODO Query: please also add other functions needed at Database level.
@@ -211,4 +235,35 @@ public class Database {
         result.append(table.toString());
     return result.toString() + "}\n";
   }
+
+  public Table getTable(String tablename) {
+    try {
+      lock.readLock().lock();
+      if(!tableMap.containsKey(tablename)) throw new TableNotExistException(databaseName);
+      return tableMap.get(tablename);
+    } finally {
+      lock.readLock().unlock();
+    }
+  }
+  public String delete(String tableName, Logic logic) {
+    return getTable(tableName).delete(logic);
+  }
+
+//  public void delete(String tablename) throws IOException, PageNotExistException {
+//    try {
+//      lock.writeLock().lock();
+//      if(!tableMap.containsKey(tablename)) throw new TableNotExistException(databaseName);
+//      String filename =  dataDir + databaseName + "_" + tablename + ".properties";
+//      File file = new File(filename);
+//      if (file.isFile()) {
+//        file.delete();
+//      }
+//      Table table = tableMap.get(tablename);
+//      table.drop(); //TODO
+//      tableMap.remove(tablename);
+//      persist();
+//    } finally {
+//      lock.writeLock().unlock();
+//    }
+//  }
 }
