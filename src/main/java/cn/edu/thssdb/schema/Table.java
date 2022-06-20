@@ -26,6 +26,7 @@ public class Table implements Iterable<Row> {
   public ArrayList<Column> columns;
   public BPlusTree<Cell, Row> index;
   private ArrayList<Long> xLocks;
+  private ArrayList<Long> sLocks;
   private int primaryIndex;
 
   private boolean isPropertyModified;
@@ -51,6 +52,8 @@ public class Table implements Iterable<Row> {
     this.columns = new ArrayList<>(Arrays.asList(columns));
     this.index = new BPlusTree<>();
     this.primaryIndex = -1;
+    this.xLocks = new ArrayList<>();
+    this.sLocks = new ArrayList<>();
 
     for (int i=0;i<this.columns.size();i++)
     {

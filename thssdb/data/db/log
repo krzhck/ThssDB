@@ -43,3 +43,12 @@ commit
 begin transaction
 delete from test0 where at1=1
 commit
+begin transaction
+delete from test0 where at1=1
+commit
+begin transaction
+delete from test0 where at1=1
+commit
+begin transaction
+delete from test0 where at1=1
+commit
