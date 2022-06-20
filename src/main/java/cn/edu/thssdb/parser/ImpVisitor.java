@@ -228,38 +228,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      表格项插入
      */
     @Override
-    public String visitInsert_stmt(SQLParser.Insert_stmtContext ctx) {
-        Database the_database = GetCurrentDB();
-        String table_name = ctx.table_name().getText().toLowerCase();
-        ArrayList<String> tmp_column_names = new ArrayList<>();
-        if (ctx.column_name() != null && ctx.column_name().size() != 0) {
-//            for (int i = 0; i < context.column_name().size(); i++)
-            for (SQLParser.Column_nameContext item : ctx.column_name()) {
-                tmp_column_names.add(item.getText().toLowerCase());
-            }
-        }
-        String[] column_names = tmp_column_names.toArray(new String[tmp_column_names.size()]);
-        for (String i:column_names){
-            System.out.println(i);
-        }
-
-        for (SQLParser.Value_entryContext item : ctx.value_entry()) {
-            String[] values = visitValue_entry(item);
-            the_database.insert(table_name, null, values);
-            for (String i:values){
-                System.out.println(i);
-            }
-        }
-        return "Inserted " + ctx.value_entry().size() + " rows.";
-    }
-
-    public String[] visitValue_entry(SQLParser.Value_entryContext context) {
-        String[] values = new String[context.literal_value().size()];
-        for (int i = 0; i < context.literal_value().size(); i++) {
-            values[i] = context.literal_value(i).getText();
-        }
-        return values;
-    }
+    public String visitInsert_stmt(SQLParser.Insert_stmtContext ctx) {return null;}
 
     /**
      * TODO

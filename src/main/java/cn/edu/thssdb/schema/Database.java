@@ -154,19 +154,6 @@ public class Database {
     }
   }
 
-  public void insert(String tableName, String[] columnNames, String[] values){
-    Table table = get(tableName);
-    if (columnNames == null) {
-      ArrayList<Cell> cell_list = new ArrayList<Cell>();
-      int len = values.length;
-      for (int i = 0; i < len; i++){
-        cell_list.add(Column.parseEntry(values[i], table.columns.get(i)));
-      }
-      table.insert(new Row(cell_list));
-    } else {
-
-    }
-  }
 
   // TODO Query: please also add other functions needed at Database level.
   public String select(QueryTable[] queryTables) {
