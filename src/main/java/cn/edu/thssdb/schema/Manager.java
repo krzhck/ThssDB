@@ -33,6 +33,8 @@ public class Manager {
     currentDatabase = null;
     sqlHandler = new SQLHandler(this);
     x_lockDict = new HashMap<>();
+    currentSessions = new ArrayList<>();
+    waitSessions = new ArrayList<>();
     File managerFolder = new File(Global.DBMS_DIR + File.separator + "data");
     if(!managerFolder.exists())
       managerFolder.mkdirs();

@@ -1,6 +1,6 @@
 package cn.edu.thssdb.exception;
 
-public class AttributeNotFoundException extends RuntimeException{
+public class AttributeNotFoundException extends RuntimeException {
     private String attribute_name;
 
     public AttributeNotFoundException(String attribute_name){

@@ -3,17 +3,19 @@ package cn.edu.thssdb.parser;
 
 // TODO: add logic for some important cases, refer to given implementations and SQLBaseVisitor.java for structures
 
-import cn.edu.thssdb.exception.DatabaseNotExistException;
-import cn.edu.thssdb.query.Comparer;
-import cn.edu.thssdb.query.Logic;
-import cn.edu.thssdb.query.LogicAtom;
-import cn.edu.thssdb.query.QueryResult;
+import cn.edu.thssdb.exception.*;
+import cn.edu.thssdb.query.*;
+import cn.edu.thssdb.schema.Column;
 import cn.edu.thssdb.schema.Database;
 import cn.edu.thssdb.schema.Manager;
 import cn.edu.thssdb.schema.Table;
-import cn.edu.thssdb.type.ComparerType;
+import cn.edu.thssdb.type.*;
+import javafx.util.Pair;
 
+import javax.management.AttributeNotFoundException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * When use SQL sentence, e.g., "SELECT avg(A) FROM TableX;"
@@ -120,14 +122,155 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      创建表格
      */
     @Override
-    public String visitCreate_table_stmt(SQLParser.Create_table_stmtContext ctx) {return null;}
+    public String visitCreate_table_stmt(SQLParser.Create_table_stmtContext ctx) {
+        String table_name = ctx.table_name().getText();
+        List<Column> columnList = new ArrayList<>();
+        for (SQLParser.Column_defContext item : ctx.column_def()) {
+            columnList.add(Column_defVisitor(item));
+        }
+
+        if (ctx.table_constraint() != null) {
+            // 解析表的末端主键约束
+            int size = ctx.table_constraint().column_name().size();
+            String[] attrs = new String[size];
+            for (int i = 0; i < size; i++) {
+                attrs[i] = ctx.table_constraint().column_name(i).getText().toLowerCase();
+            }
+            for (String item : attrs) {
+                boolean set = false;
+                for (Column column : columnList) {
+                    if (column.getColumnName().toLowerCase().equals(item)) {
+                        column.setPrimary(1);
+                        set = true;
+                    }
+                    if (!set) {
+//                        throw new AttributeNotFoundException(item);
+                        return "1111";
+                    }
+                }
+            }
+        }
+
+        // 建表
+        try {
+            manager.getCurrentDatabase().create(table_name.toLowerCase(),
+                    columnList.toArray(new Column[columnList.size()]));
+        }
+        catch (Exception e) {
+            return e.getMessage();
+        }
+        return "Table " + table_name + " Created Successfully.";
+    }
+
+    // 读取列的定义
+    public Column Column_defVisitor(SQLParser.Column_defContext ctx) {
+        // 约束
+        boolean flag_notnull = false;
+        int flag_primary = 0;
+        for (SQLParser.Column_constraintContext item : ctx.column_constraint()) {
+            // 解析列约束
+            ConstraintEnumsType constraint = null;
+            if (item.K_PRIMARY() != null) {
+                constraint = ConstraintEnumsType.PRIMARY;
+            }
+            else if (item.K_NULL() != null) {
+                constraint = ConstraintEnumsType.NOTNULL;
+            }
+            if (constraint.equals(ConstraintEnumsType.PRIMARY)) {
+                flag_primary = 1;
+            }
+            else if (constraint.equals(ConstraintEnumsType.NOTNULL)) {
+                flag_notnull = true;
+            }
+            // 给主键添加not null约束
+            flag_notnull = flag_notnull || (flag_primary == 1);
+        }
+
+        // 名称和类型
+        String name = ctx.column_name().getText().toLowerCase();
+        Pair<ColumnType, Integer> type = Type_nameVisitor(ctx.type_name());
+        ColumnType columnType = type.getKey();
+        int maxLength = type.getValue();
+        return new Column(name, columnType, flag_primary, flag_notnull, maxLength);
+    }
+
+    // 读取列的类型和最大程度
+    public Pair<ColumnType, Integer> Type_nameVisitor(SQLParser.Type_nameContext ctx) {
+        if (ctx.T_INT() != null) { // INT
+            return new Pair<>(ColumnType.INT, -1);
+        }
+        else if (ctx.T_LONG() != null) { // LONG
+            return new Pair<>(ColumnType.LONG, -1);
+        }
+        else if (ctx.T_FLOAT() != null) { // FLOAT
+            return new Pair<>(ColumnType.FLOAT, -1);
+        }
+        else if (ctx.T_DOUBLE() != null) { // DOUBLE
+            return new Pair<>(ColumnType.DOUBLE, -1);
+        }
+        else if (ctx.T_STRING() != null) { // STRING
+            try {
+                return new Pair<>(ColumnType.STRING, Integer.parseInt(ctx.NUMERIC_LITERAL().getText()));
+            } catch (Exception e) {
+                throw new ParseStringColumnException(e.getMessage());
+            }
+        }
+        else {
+            return null;
+        }
+    }
+
+
+    @Override
+    public String visitShow_table_stmt(SQLParser.Show_table_stmtContext ctx) {
+        try {
+            return GetCurrentDB().toString();
+        }
+        catch (Exception e) {
+            return e.getMessage();
+        }
+    }
+
+    @Override
+    public String visitShow_db_stmt(SQLParser.Show_db_stmtContext ctx) {return null;}
 
     /**
      * TODO
      表格项插入
      */
     @Override
-    public String visitInsert_stmt(SQLParser.Insert_stmtContext ctx) {return null;}
+    public String visitInsert_stmt(SQLParser.Insert_stmtContext ctx) {
+        Database the_database = GetCurrentDB();
+        String table_name = ctx.table_name().getText().toLowerCase();
+        ArrayList<String> tmp_column_names = new ArrayList<>();
+        if (ctx.column_name() != null && ctx.column_name().size() != 0) {
+//            for (int i = 0; i < context.column_name().size(); i++)
+            for (SQLParser.Column_nameContext item : ctx.column_name()) {
+                tmp_column_names.add(item.getText().toLowerCase());
+            }
+        }
+        String[] column_names = tmp_column_names.toArray(new String[tmp_column_names.size()]);
+        for (String i:column_names){
+            System.out.println(i);
+        }
+
+        for (SQLParser.Value_entryContext item : ctx.value_entry()) {
+            String[] values = visitValue_entry(item);
+            the_database.insert(table_name, null, values);
+            for (String i:values){
+                System.out.println(i);
+            }
+        }
+        return "Inserted " + ctx.value_entry().size() + " rows.";
+    }
+
+    public String[] visitValue_entry(SQLParser.Value_entryContext context) {
+        String[] values = new String[context.literal_value().size()];
+        for (int i = 0; i < context.literal_value().size(); i++) {
+            values[i] = context.literal_value(i).getText();
+        }
+        return values;
+    }
 
     /**
      * TODO
