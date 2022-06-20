@@ -163,6 +163,7 @@ public class Database {
         cell_list.add(Column.parseEntry(values[i], table.columns.get(i)));
       }
       table.insert(new Row(cell_list));
+      table.persist();
     } else {
 
     }
