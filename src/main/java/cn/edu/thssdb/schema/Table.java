@@ -52,8 +52,6 @@ public class Table implements Iterable<Row> {
     this.columns = new ArrayList<>(Arrays.asList(columns));
     this.index = new BPlusTree<>();
     this.primaryIndex = -1;
-    this.xLocks = new ArrayList<>();
-    this.sLocks = new ArrayList<>();
 
     for (int i=0;i<this.columns.size();i++)
     {
@@ -64,9 +62,13 @@ public class Table implements Iterable<Row> {
       }
     }
     if(this.primaryIndex < 0)
-      throw new MultiPrimaryKeyException(this.tableName);
+      throw new NoPrimaryKeyException(this.tableName);
 
     // TODO initiate lock status.
+    this.xLocks = new ArrayList<>();
+    this.sLocks = new ArrayList<>();
+    this.topLock = 0;
+    isPropertyModified = true;
 
     recover();
   }
@@ -99,18 +101,21 @@ public class Table implements Iterable<Row> {
   public void insert(Row row) {
     try {
       // TODO lock control
+      lock.writeLock().lock();
       this.checkRowValidInTable(row);
       if(this.containsRow(row))
         throw new DuplicateKeyException();
       this.index.put(row.getEntries().get(this.primaryIndex), row);
       }finally {
       // TODO lock control
+      lock.writeLock().unlock();
     }
   }
 
   public void delete(Row row) {
     try {
       // TODO lock control.
+      lock.writeLock().lock();
       isPropertyModified = true;
       this.checkRowValidInTable(row);
       if(!this.containsRow(row))
@@ -132,7 +137,7 @@ public class Table implements Iterable<Row> {
         cnt++;
       }
     }
-    return "Deleted " + cnt + " itmes.";
+    return "Deleted " + cnt + " items.";
   }
 
   public void update(Cell primaryCell, Row newRow) {
