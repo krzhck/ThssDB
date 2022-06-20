@@ -15,10 +15,7 @@ import javafx.util.Pair;
 
 import javax.management.AttributeNotFoundException;
 import java.util.ArrayList;
-<<<<<<< HEAD
-=======
 import java.util.List;
->>>>>>> 43ddd24209d64038f1a0f97ab5ec53f5c468e5f9
 import java.util.Locale;
 
 /**
@@ -264,7 +261,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         Database curr_db = GetCurrentDB();
         String table_name = ctx.table_name().getText().toLowerCase();
         String col_name = ctx.column_name().getText().toLowerCase();
-        
+        return null;
     }
 
     /**
