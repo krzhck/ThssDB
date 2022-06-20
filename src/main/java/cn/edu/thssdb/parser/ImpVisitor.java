@@ -3,9 +3,8 @@ package cn.edu.thssdb.parser;
 
 // TODO: add logic for some important cases, refer to given implementations and SQLBaseVisitor.java for structures
 
-import cn.edu.thssdb.exception.DatabaseNotExistException;
-import cn.edu.thssdb.exception.ParseStringColumnException;
-import cn.edu.thssdb.query.QueryResult;
+import cn.edu.thssdb.exception.*;
+import cn.edu.thssdb.query.*;
 import cn.edu.thssdb.schema.Column;
 import cn.edu.thssdb.schema.Database;
 import cn.edu.thssdb.schema.Manager;
@@ -223,9 +222,6 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         }
     }
 
-
-
-
     @Override
     public String visitShow_table_stmt(SQLParser.Show_table_stmtContext ctx) {
         try {
@@ -269,7 +265,59 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      表格项查询
      */
     @Override
-    public QueryResult visitSelect_stmt(SQLParser.Select_stmtContext ctx) {return null;}
+    public QueryResult visitSelect_stmt(SQLParser.Select_stmtContext ctx) {
+        Database cur_database = GetCurrentDB();
+        boolean distinct = false;
+        if (ctx.K_DISTINCT() != null) {
+            distinct = true;
+        }
+        int col_count = ctx.result_column().size();
+        String [] col_selected = new String[col_count];
+        for (int i = 0; i < col_count; i++) {
+            String col_name = ctx.result_column(i).getText().toLowerCase();
+            if (col_name.equals("*")) {
+                col_selected = null;
+                break;
+            }
+            col_selected[i] = col_name;
+        }
+
+        // 建议querytable
+        int query_count = ctx.table_query().size();
+        if (query_count == 0) {
+            throw new WithoutFromTableException();
+        }
+        QueryTable cur_query_table = null;
+        ArrayList<String> table_names = new ArrayList<>();
+
+        try {
+            cur_query_table = Table_queryVisitor(ctx.table_query(0));
+            for (SQLParser.Table_nameContext subctx : ctx.table_query(0).table_name()) {
+                table_names.add(subctx.getText().toLowerCase());
+            }
+        } catch (Exception e) {
+            return new QueryResult(e.toString());
+        }
+        if (cur_query_table == null) {
+            throw new WithoutFromTableException();
+        }
+        // 建立逻辑，获得结果
+//        Logic logic = null;
+
+
+
+        return null;
+    }
+
+    public QueryTable Table_queryVisitor(SQLParser.Table_queryContext ctx) {
+        Database cur_database = GetCurrentDB();
+        if (ctx.K_JOIN().size() == 0) { // 单一表
+            return cur_database.getSingleQueryTable(ctx.table_name(0).getText().toLowerCase());
+        }
+        else { // 复合表
+            // TODO
+        }
+    }
 
     /**
      退出

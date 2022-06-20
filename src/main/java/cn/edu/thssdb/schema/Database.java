@@ -162,6 +162,21 @@ public class Database {
     return null;
   }
 
+  public QueryTable getSingleQueryTable(String tableName) {
+    try {
+      lock.readLock().lock();
+      if (tableMap.containsKey(tableName)) {
+        return new QueryTable(tableMap.get(tableName));
+      }
+      else {
+        throw new TableNotExistException(tableName);
+      }
+    }
+    finally {
+      lock.readLock().unlock();
+    }
+  }
+
 
 
 
