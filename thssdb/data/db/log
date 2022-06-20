@@ -1,0 +1,45 @@
+begin transaction
+delete table test0
+commit
+begin transaction
+insert into test0(at1) values (1)
+commit
+begin transaction
+insert into test0(at1) values (2)
+commit
+begin transaction
+delete from test0 where at1 = 1
+commit
+begin transaction
+delete from test0 where at1=1
+commit
+begin transaction
+insert into test0(at1) values(1)
+commit
+begin transaction
+delete from test0 where at1=1
+commit
+begin transaction
+delete from test0 where at1=1
+commit
+begin transaction
+delete from test0 where at1=1
+commit
+begin transaction
+delete from test0 where at1=1
+commit
+begin transaction
+delete from test0 where at1=1
+commit
+begin transaction
+delete from test0 where at1=1
+commit
+begin transaction
+delete from test0 where at1=1
+commit
+begin transaction
+delete from test0 where at1=1
+commit
+begin transaction
+delete from test0 where at1=1
+commit

@@ -22,6 +22,7 @@ public class Manager {
   public ArrayList<Long> waitSessions;
   public static SQLHandler sqlHandler;
   public HashMap<Long, ArrayList<String>> x_lockDict;
+  public HashMap<Long, ArrayList<String>> s_lockDict;
 
   public static Manager getInstance() {
     return Manager.ManagerHolder.INSTANCE;
@@ -33,6 +34,7 @@ public class Manager {
     currentDatabase = null;
     sqlHandler = new SQLHandler(this);
     x_lockDict = new HashMap<>();
+    s_lockDict = new HashMap<>();
     currentSessions = new ArrayList<>();
     waitSessions = new ArrayList<>();
     File managerFolder = new File(Global.DBMS_DIR + File.separator + "data");
@@ -44,25 +46,29 @@ public class Manager {
   public void deleteDatabase(String databaseName) {
     try {
       // TODO: add lock control
+      lock.writeLock().lock();
       if (!databases.containsKey(databaseName))
         throw new DatabaseNotExistException(databaseName);
       Database database = databases.get(databaseName);
       database.dropDatabase();
       databases.remove(databaseName);
-
+//      persist(); // ?
     } finally {
       // TODO: add lock control
+      lock.writeLock().unlock();
     }
   }
 
   public void switchDatabase(String databaseName) {
     try {
       // TODO: add lock control
+      lock.readLock().lock();
       if (!databases.containsKey(databaseName))
         throw new DatabaseNotExistException(databaseName);
       currentDatabase = databases.get(databaseName);
     } finally {
       // TODO: add lock control
+      lock.readLock().unlock();
     }
   }
 
@@ -93,31 +99,37 @@ public class Manager {
   public Database get(String databaseName) {
     try {
       // TODO: add lock control
+      lock.readLock().lock();
       if (!databases.containsKey(databaseName))
         throw new DatabaseNotExistException(databaseName);
       return databases.get(databaseName);
     } finally {
       // TODO: add lock control
+      lock.readLock().unlock();
     }
   }
 
   public void createDatabaseIfNotExists(String databaseName) {
     try {
       // TODO: add lock control
+      lock.writeLock().lock();
       if (!databases.containsKey(databaseName))
         databases.put(databaseName, new Database(databaseName));
       if (currentDatabase == null) {
         try {
           // TODO: add lock control
+          lock.readLock().lock();
           if (!databases.containsKey(databaseName))
             throw new DatabaseNotExistException(databaseName);
           currentDatabase = databases.get(databaseName);
         } finally {
           // TODO: add lock control
+          lock.readLock().unlock();
         }
       }
     } finally {
       // TODO: add lock control
+      lock.writeLock().unlock();
     }
   }
 
@@ -137,11 +149,13 @@ public class Manager {
   public void persistDatabase(String databaseName) {
     try {
       // TODO: add lock control
+      lock.writeLock().lock();
       Database database = databases.get(databaseName);
       database.quit();
       persist();
     } finally {
       // TODO: add lock control
+      lock.writeLock().unlock();
     }
   }
 
