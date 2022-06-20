@@ -14,3 +14,12 @@ commit
 begin transaction
 insert into m values (2)
 commit
+begin transaction
+insert into ['
+commit
+begin transaction
+insert into a values(1)
+commit
+begin transaction
+insert into a values(2)
+commit

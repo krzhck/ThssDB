@@ -2,3 +2,4 @@
 target/
 src/main/thrift/
 src/main/java/rpc/thrift/
+thssdb/data/
