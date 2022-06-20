@@ -183,4 +183,17 @@ public class Manager {
   public static String getManagerDataFilePath(){
     return Global.DBMS_DIR + File.separator + "data" + File.separator + "manager";
   }
+
+  public ArrayList<Long> getSessionsInLocks() {
+    return waitSessions;
+  }
+
+  public ArrayList<Long> getSessionsInTransactions() {
+    return currentSessions;
+  }
+
+  public HashMap<Long, ArrayList<String>> getxLocks() {
+    return x_lockDict;
+  }
+
 }

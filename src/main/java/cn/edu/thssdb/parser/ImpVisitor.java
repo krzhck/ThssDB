@@ -4,9 +4,14 @@ package cn.edu.thssdb.parser;
 // TODO: add logic for some important cases, refer to given implementations and SQLBaseVisitor.java for structures
 
 import cn.edu.thssdb.exception.DatabaseNotExistException;
+import cn.edu.thssdb.query.Comparer;
+import cn.edu.thssdb.query.Logic;
+import cn.edu.thssdb.query.LogicAtom;
 import cn.edu.thssdb.query.QueryResult;
 import cn.edu.thssdb.schema.Database;
 import cn.edu.thssdb.schema.Manager;
+import cn.edu.thssdb.schema.Table;
+import cn.edu.thssdb.type.ComparerType;
 
 import java.util.ArrayList;
 
@@ -129,7 +134,165 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      表格项删除
      */
     @Override
-    public String visitDelete_stmt(SQLParser.Delete_stmtContext ctx) {return null;}
+    public String visitDelete_stmt(SQLParser.Delete_stmtContext ctx) {
+        Database the_database=GetCurrentDB();
+        String table_name = ctx.table_name().getText().toLowerCase();
+        if (ctx.K_WHERE() == null) {
+            try {
+                return the_database.delete(table_name, null);
+            } catch (Exception e) {
+                return e.toString();
+            }
+        }
+        Logic logic = Multiple_conditionVisitor(ctx.multiple_condition());
+
+        if(manager.getSessionsInTransactions().contains(session))
+        {
+            //manager.getSessionsInLocks().add(session);
+            Table the_table = the_database.getTable(table_name);
+            while(true)
+            {
+                if(!manager.getSessionsInLocks().contains(session))   //新加入一个session
+                {
+                    int get_lock = the_table.getXLock(session);
+                    if(get_lock!=-1)
+                    {
+                        if(get_lock==1)
+                        {
+                            ArrayList<String> tmp = manager.x_lockDict.get(session);
+                            tmp.add(table_name);
+                            manager.x_lockDict.put(session,tmp);
+                        }
+                        break;
+                    }else
+                    {
+                        manager.getSessionsInLocks().add(session);
+                    }
+                }else    //之前等待的session
+                {
+                    if(manager.getSessionsInLocks().get(0)==session)  //只查看阻塞队列开头session
+                    {
+                        int get_lock = the_table.getXLock(session);
+                        if(get_lock!=-1)
+                        {
+                            if(get_lock==1)
+                            {
+                                ArrayList<String> tmp = manager.x_lockDict.get(session);
+                                tmp.add(table_name);
+                                manager.x_lockDict.put(session,tmp);
+                            }
+                            manager.getSessionsInLocks().remove(0);
+                            break;
+                        }
+                    }
+                }
+                try
+                {
+                    Thread.sleep(500);
+                } catch (Exception e) {
+                    System.out.println("Got an exception!");
+                }
+            }
+
+            try {
+                return the_table.delete(logic);
+            } catch (Exception e) {
+                return e.toString();
+            }
+
+        }
+        else{
+            try {
+                return the_database.delete(table_name, logic);
+            } catch (Exception e) {
+                return e.toString();
+            }
+        }
+    }
+
+    public Logic Multiple_conditionVisitor(SQLParser.Multiple_conditionContext context) {
+        if (context.condition() != null)
+            return visitCondition(context.condition());
+        LogicAtom logicType;
+        if (context.AND() != null)
+            logicType = LogicAtom.and;
+        else
+            logicType = LogicAtom.or;
+        return new Logic(Multiple_conditionVisitor(context.multiple_condition(0)),
+                logicType,
+                Multiple_conditionVisitor(context.multiple_condition(1)));
+    }
+
+    public Logic visitCondition(SQLParser.ConditionContext context) {
+        Comparer left = ExpressionVisitor(context.expression(0));
+        Comparer right = ExpressionVisitor(context.expression(1));
+        LogicAtom type = ComparatorVisitor(context.comparator());
+        return new Logic(left, type, right);
+    }
+
+    public Comparer ExpressionVisitor(SQLParser.ExpressionContext context) {
+        if (context.comparer() != null) {
+            return ComparerVisitor(context.comparer());
+        }
+        else {
+            return null;
+        }
+    }
+
+    public LogicAtom ComparatorVisitor(SQLParser.ComparatorContext context) {
+        if (context.EQ() != null) {
+            return LogicAtom.eq;
+        }
+        else if (context.NE() != null) {
+            return LogicAtom.neq;
+        }
+        else if (context.GT() != null) {
+            return LogicAtom.great;
+        }
+        else if (context.LT() != null) {
+            return LogicAtom.less;
+        }
+        else if (context.GE() != null) {
+            return LogicAtom.geq;
+        }
+        else if (context.LE() != null) {
+            return LogicAtom.leq;
+        }
+        return null;
+    }
+
+    public Comparer ComparerVisitor(SQLParser.ComparerContext context) {
+        //处理column情况
+        if (context.column_full_name() != null) {
+            return new Comparer(ComparerType.COLUMN, context.column_full_name().getText());
+        }
+        //获得类型和内容
+        LogicAtom type = Literal_valueVisitor(context.literal_value());
+        String text = context.literal_value().getText();
+        switch (type) {
+            case num:
+                return new Comparer(ComparerType.NUMBER, text);
+            case str:
+                return new Comparer(ComparerType.STRING, text.substring(1, text.length() - 1));
+            case nul:
+                return new Comparer(ComparerType.NULL, null);
+            default:
+                return null;
+        }
+    }
+
+    public LogicAtom Literal_valueVisitor(SQLParser.Literal_valueContext context) {
+        if (context.NUMERIC_LITERAL() != null) {
+            return LogicAtom.num;
+        }
+        if (context.STRING_LITERAL() != null) {
+            return LogicAtom.str;
+        }
+        if (context.K_NULL() != null) {
+            return LogicAtom.nul;
+        }
+        return null;
+    }
 
     /**
      * TODO
