@@ -13,12 +13,12 @@ public class MetaInfo {
   private final String tableName;
   private final List<Column> columns;
 
-  MetaInfo(String tableName, ArrayList<Column> columns) {
+  public MetaInfo(String tableName, ArrayList<Column> columns) {
     this.tableName = tableName;
     this.columns = columns;
   }
 
-  int columnFind(String name) {
+  public int columnFind(String name) {
     int size = columns.size();
     for (int i = 0; i < size; ++i)
       if (columns.get(i).getColumnName().equals(name))
@@ -38,11 +38,18 @@ public class MetaInfo {
     return tableName + "." + getColumnName(index);
   }
 
-  int getColumnSize() {
+  public int getColumnSize() {
     return columns.size();
   }
 
-  String getTableName() {
+  public String getTableName() {
     return tableName;
+  }
+
+  public Column getIndexColumn(int index) {
+    if (index < 0 || index > (columns.size() - 1)) {
+      return null;
+    }
+    return columns.get(index);
   }
 }
