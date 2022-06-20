@@ -3,14 +3,13 @@ package cn.edu.thssdb.parser;
 
 // TODO: add logic for some important cases, refer to given implementations and SQLBaseVisitor.java for structures
 
-import cn.edu.thssdb.exception.DatabaseNotExistException;
-import cn.edu.thssdb.exception.ParseStringColumnException;
-import cn.edu.thssdb.query.QueryResult;
+import cn.edu.thssdb.exception.*;
+import cn.edu.thssdb.query.*;
 import cn.edu.thssdb.schema.Column;
 import cn.edu.thssdb.schema.Database;
 import cn.edu.thssdb.schema.Manager;
-import cn.edu.thssdb.type.ColumnType;
-import cn.edu.thssdb.type.ConstraintEnumsType;
+import cn.edu.thssdb.schema.Table;
+import cn.edu.thssdb.type.*;
 import javafx.util.Pair;
 
 import javax.management.AttributeNotFoundException;
@@ -123,7 +122,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      创建表格
      */
     @Override
-    public String visitCreate_table_stmt(SQLParser.Create_table_stmtContext ctx){
+    public String visitCreate_table_stmt(SQLParser.Create_table_stmtContext ctx) {
         String table_name = ctx.table_name().getText();
         List<Column> columnList = new ArrayList<>();
         for (SQLParser.Column_defContext item : ctx.column_def()) {
@@ -145,9 +144,8 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
                         set = true;
                     }
                     if (!set) {
-                        String message = "Exception occurs: Attribute " + item + " Not Found!";
-//                        throw new AttributeNotFoundException(message);
-                        return message;
+//                        throw new AttributeNotFoundException(item);
+                        return "1111";
                     }
                 }
             }
