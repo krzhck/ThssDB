@@ -164,6 +164,7 @@ public class Database {
       }
       table.insert(new Row(cell_list));
       table.persist();
+
     } else {
 
     }
