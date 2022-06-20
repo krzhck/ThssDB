@@ -316,6 +316,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         }
         else { // 复合表
             // TODO
+            return cur_database.getSingleQueryTable(ctx.table_name(0).getText().toLowerCase());
         }
     }
 
