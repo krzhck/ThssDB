@@ -3,14 +3,13 @@ package cn.edu.thssdb.parser;
 
 // TODO: add logic for some important cases, refer to given implementations and SQLBaseVisitor.java for structures
 
-import cn.edu.thssdb.exception.DatabaseNotExistException;
-import cn.edu.thssdb.exception.ParseStringColumnException;
-import cn.edu.thssdb.query.QueryResult;
+import cn.edu.thssdb.exception.*;
+import cn.edu.thssdb.query.*;
 import cn.edu.thssdb.schema.Column;
 import cn.edu.thssdb.schema.Database;
 import cn.edu.thssdb.schema.Manager;
-import cn.edu.thssdb.type.ColumnType;
-import cn.edu.thssdb.type.ConstraintEnumsType;
+import cn.edu.thssdb.schema.Table;
+import cn.edu.thssdb.type.*;
 import javafx.util.Pair;
 
 import javax.management.AttributeNotFoundException;
@@ -57,7 +56,6 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         if (ctx.use_db_stmt() != null)  return new QueryResult(visitUse_db_stmt(ctx.use_db_stmt()));
         if (ctx.create_table_stmt() != null) return new QueryResult(visitCreate_table_stmt(ctx.create_table_stmt()));
         if (ctx.drop_table_stmt() != null) return new QueryResult(visitDrop_table_stmt(ctx.drop_table_stmt()));
-        if (ctx.show_table_stmt() != null) return new QueryResult(visitShow_table_stmt(ctx.show_table_stmt()));
         if (ctx.insert_stmt() != null) return new QueryResult(visitInsert_stmt(ctx.insert_stmt()));
         if (ctx.delete_stmt() != null) return new QueryResult(visitDelete_stmt(ctx.delete_stmt()));
         if (ctx.update_stmt() != null) return new QueryResult(visitUpdate_stmt(ctx.update_stmt()));
@@ -124,7 +122,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      创建表格
      */
     @Override
-    public String visitCreate_table_stmt(SQLParser.Create_table_stmtContext ctx){
+    public String visitCreate_table_stmt(SQLParser.Create_table_stmtContext ctx) {
         String table_name = ctx.table_name().getText();
         List<Column> columnList = new ArrayList<>();
         for (SQLParser.Column_defContext item : ctx.column_def()) {
@@ -146,9 +144,8 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
                         set = true;
                     }
                     if (!set) {
-                        String message = "Exception occurs: Attribute " + item + " Not Found!";
-//                        throw new AttributeNotFoundException(message);
-                        return message;
+//                        throw new AttributeNotFoundException(item);
+                        return "1111";
                     }
                 }
             }
@@ -226,24 +223,43 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
 
 
 
-    @Override
-    public String visitShow_table_stmt(SQLParser.Show_table_stmtContext ctx) {
-        try {
-            return GetCurrentDB().toString();
-        }
-        catch (Exception e) {
-            return e.getMessage();
-        }
-    }
-
-    @Override
-    public String visitShow_db_stmt(SQLParser.Show_db_stmtContext ctx) {return null;}
     /**
      * TODO
      表格项插入
      */
     @Override
-    public String visitInsert_stmt(SQLParser.Insert_stmtContext ctx) {return null;}
+    public String visitInsert_stmt(SQLParser.Insert_stmtContext ctx) {
+        Database the_database = GetCurrentDB();
+        String table_name = ctx.table_name().getText().toLowerCase();
+        ArrayList<String> tmp_column_names = new ArrayList<>();
+        if (ctx.column_name() != null && ctx.column_name().size() != 0) {
+//            for (int i = 0; i < context.column_name().size(); i++)
+            for (SQLParser.Column_nameContext item : ctx.column_name()) {
+                tmp_column_names.add(item.getText().toLowerCase());
+            }
+        }
+        String[] column_names = tmp_column_names.toArray(new String[tmp_column_names.size()]);
+        for (String i:column_names){
+            System.out.println(i);
+        }
+
+        for (SQLParser.Value_entryContext item : ctx.value_entry()) {
+            String[] values = visitValue_entry(item);
+            the_database.insert(table_name, null, values);
+            for (String i:values){
+                System.out.println(i);
+            }
+        }
+        return "Inserted " + ctx.value_entry().size() + " rows.";
+    }
+
+    public String[] visitValue_entry(SQLParser.Value_entryContext context) {
+        String[] values = new String[context.literal_value().size()];
+        for (int i = 0; i < context.literal_value().size(); i++) {
+            values[i] = context.literal_value(i).getText();
+        }
+        return values;
+    }
 
     /**
      * TODO
@@ -257,12 +273,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      表格项更新
      */
     @Override
-    public String visitUpdate_stmt(SQLParser.Update_stmtContext ctx) {
-        Database curr_db = GetCurrentDB();
-        String table_name = ctx.table_name().getText().toLowerCase();
-        String col_name = ctx.column_name().getText().toLowerCase();
-        return null;
-    }
+    public String visitUpdate_stmt(SQLParser.Update_stmtContext ctx) {return null;}
 
     /**
      * TODO
