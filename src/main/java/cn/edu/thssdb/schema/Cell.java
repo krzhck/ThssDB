@@ -12,6 +12,10 @@ public class Cell implements Comparable<Cell>, Serializable {
     this.value = value;
   }
 
+  public Cell(Cell cell){
+    this.value = cell.value;
+  }
+
   @Override
   public int compareTo(Cell e) {
     return value.compareTo(e.value);
@@ -24,11 +28,15 @@ public class Cell implements Comparable<Cell>, Serializable {
     if (this.getClass() != obj.getClass())
       return false;
     Cell e = (Cell) obj;
+    if (value == null)
+      return e.value == null;
+    else if (e.value == null)
+      return value == null;
     return value.equals(e.value);
   }
 
   public String toString() {
-    return value.toString();
+    return value != null ? value.toString() : Global.ENTRY_NULL;
   }
 
   @Override

@@ -97,6 +97,8 @@ public class Logic {
             Object leftResult = left.exec(row);
             Object rightResult = right.exec(row);
             if (left.middle == LogicAtom.nul || right.middle == LogicAtom.nul) {
+                if (left.middle == LogicAtom.nul && right.middle == LogicAtom.nul)
+                    return BoolType.TRUE;
                 return BoolType.UNKNOWN;
             }
             if (left.middle != right.middle)
