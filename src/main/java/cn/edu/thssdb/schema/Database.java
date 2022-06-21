@@ -167,9 +167,9 @@ public class Database {
     table.insert_single_row(columnNames, values);
   }
 
-  public void update_rows(String table_name, String column_name, Comparable value, Logic logic){
+  public String update_rows(String table_name, String column_name, String value, Logic logic){
     Table table = get(table_name);
-    table.update_rows(column_name, value, logic);
+    return table.update_rows(column_name, value, logic);
   }
 
   // TODO Query: please also add other functions needed at Database level.

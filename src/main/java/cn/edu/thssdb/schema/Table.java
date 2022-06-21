@@ -186,8 +186,32 @@ public class Table implements Iterable<Row> {
     }
   }
 
-  public void update_rows(String column_name, Comparable value, Logic logic){
-
+  public String update_rows(String column_name, String value, Logic logic){
+    TableIterator it = (TableIterator) iterator();
+    int update_count = 0;
+    while(it.hasNext()){
+      Row row = it.next();
+      MultiRow multiRow = new MultiRow(row, this);
+      if (logic == null || logic.exec(multiRow) == BoolType.TRUE){
+        Cell primary_cell = row.getEntries().get(primaryIndex);
+        Row new_row = new Row(row);
+        int len = columns.size();
+        int match_column = -1;
+        for (int i = 0; i < len; i++){
+          if (column_name.equals(columns.get(i).getColumnName())){
+            match_column = i;
+          }
+        }
+        if (match_column == -1){
+          throw new AttributeNotFoundException(column_name);
+        }
+        Cell new_cell = Column.parseEntry(value, columns.get(match_column));
+        new_row.getEntries().set(match_column, new_cell);
+        update(primary_cell, new_row);
+        update_count++;
+      }
+    }
+    return "Updated " + update_count + " rows.";
   }
 
   private void serialize() {

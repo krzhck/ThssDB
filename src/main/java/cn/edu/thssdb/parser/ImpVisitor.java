@@ -262,7 +262,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      */
     @Override
     public String visitInsert_stmt(SQLParser.Insert_stmtContext ctx) {
-        Database the_database = GetCurrentDB();
+        Database database = GetCurrentDB();
         String table_name = ctx.table_name().getText().toLowerCase();
         ArrayList<String> column_names_list = new ArrayList<>();
         if (ctx.column_name() != null && ctx.column_name().size() != 0) {
@@ -275,7 +275,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         for (SQLParser.Value_entryContext item : ctx.value_entry()) {
             String[] values = visitValue_entry(item);
             try {
-                the_database.insert_single_row(table_name, column_names, values);
+                database.insert_single_row(table_name, column_names, values);
             } catch (Exception e) {
                 return e.toString();
             }
@@ -472,7 +472,28 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      表格项更新
      */
     @Override
-    public String visitUpdate_stmt(SQLParser.Update_stmtContext ctx) {return null;}
+    public String visitUpdate_stmt(SQLParser.Update_stmtContext ctx) {
+        Database database = GetCurrentDB();
+        String table_name = ctx.table_name().getText().toLowerCase();
+        String column_name = ctx.column_name().getText().toLowerCase();
+        Comparer value = ExpressionVisitor(ctx.expression());
+        SQLParser.Multiple_conditionContext multiple_condition = ctx.multiple_condition();
+        if(multiple_condition == null){
+            try {
+                return database.update_rows(table_name, column_name, value.mValue.toString(), null);
+            } catch (Exception e) {
+                return e.toString();
+            }
+        }
+        else{
+            try {
+                Logic logic = Multiple_conditionVisitor(multiple_condition);
+                return database.update_rows(table_name, column_name, value.mValue.toString(), logic);
+            } catch (Exception e) {
+                return e.toString();
+            }
+        }
+    }
 
     /**
      * TODO
