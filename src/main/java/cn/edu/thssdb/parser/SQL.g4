@@ -25,9 +25,7 @@ sql_stmt :
     | show_table_stmt
     | show_meta_stmt
     | quit_stmt
-    | update_stmt
-    | begin_transaction_stmt
-    | commit_stmt;
+    | update_stmt ;
 
 create_db_stmt :
     K_CREATE K_DATABASE database_name ;
@@ -92,12 +90,6 @@ drop_view_stmt :
 update_stmt :
     K_UPDATE table_name
         K_SET column_name '=' expression ( K_WHERE multiple_condition )? ;
-
-begin_transaction_stmt :
-    K_BEGIN K_TRANSACTION;
-
-commit_stmt :
-    K_COMMIT;
 
 column_def :
     column_name type_name column_constraint* ;

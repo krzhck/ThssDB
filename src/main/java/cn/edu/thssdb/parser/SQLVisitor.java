@@ -268,8 +268,4 @@ public interface SQLVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitPassword(SQLParser.PasswordContext ctx);
-
-	T visitBegin_transaction_stmt(SQLParser.Begin_transaction_stmtContext ctx);
-
-	T visitCommit_stmt(SQLParser.Commit_stmtContext ctx);
 }

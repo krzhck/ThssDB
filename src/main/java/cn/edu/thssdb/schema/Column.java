@@ -62,8 +62,7 @@ public class Column implements Comparable<Column> {
     }
     switch (columnType) {
       case INT:
-        //return new Cell(Integer.valueOf(s));
-        return new Cell(Double.valueOf(s).intValue());
+        return new Cell(Integer.valueOf(s));
       case LONG:
         return new Cell(Long.valueOf(s));
       case FLOAT:

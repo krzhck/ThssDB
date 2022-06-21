@@ -21,7 +21,6 @@ public class QueryResult {
 
   public final QueryResultType resultType;
   public final String errorMessage; // If it is an error.
-
   private List<String> columnNames;
   public List<Row> results;
   private List<Integer> indices;
@@ -105,5 +104,5 @@ public class QueryResult {
     return new Row(record.toArray(new Cell[indices.size()]));
   }
 
-  public List<String> getColumnNames(){ return this.columnNames; }
+  public List<String> getColumnNames(){return this.columnNames;}
 }

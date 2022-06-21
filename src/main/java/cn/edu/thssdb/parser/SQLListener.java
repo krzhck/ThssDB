@@ -437,14 +437,4 @@ public interface SQLListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitPassword(SQLParser.PasswordContext ctx);
-
-	void enterBegin_transaction_stmt(SQLParser.Begin_transaction_stmtContext ctx);
-
-	void exitBegin_transaction_stmt(SQLParser.Begin_transaction_stmtContext ctx);
-
-	void enterCommit_stmt(SQLParser.Commit_stmtContext ctx);
-
-	void exitCommit_stmt(SQLParser.Commit_stmtContext ctx);
-
-
 }

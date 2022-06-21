@@ -67,8 +67,6 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         }
         if (ctx.update_stmt() != null) return new QueryResult(visitUpdate_stmt(ctx.update_stmt()));
         if (ctx.select_stmt() != null) return visitSelect_stmt(ctx.select_stmt());
-        if (ctx.begin_transaction_stmt() != null) return new QueryResult(visitBegin_transaction_stmt(ctx.begin_transaction_stmt()));
-        if (ctx.commit_stmt() != null) return new QueryResult(visitCommit_stmt(ctx.commit_stmt()));
         if (ctx.quit_stmt() != null) return new QueryResult(visitQuit_stmt(ctx.quit_stmt()));
         return null;
     }
@@ -262,7 +260,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      */
     @Override
     public String visitInsert_stmt(SQLParser.Insert_stmtContext ctx) {
-        Database database = GetCurrentDB();
+        Database the_database = GetCurrentDB();
         String table_name = ctx.table_name().getText().toLowerCase();
         ArrayList<String> column_names_list = new ArrayList<>();
         if (ctx.column_name() != null && ctx.column_name().size() != 0) {
@@ -275,7 +273,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         for (SQLParser.Value_entryContext item : ctx.value_entry()) {
             String[] values = visitValue_entry(item);
             try {
-                database.insert_single_row(table_name, column_names, values);
+                the_database.insert(table_name, column_names, values);
             } catch (Exception e) {
                 return e.toString();
             }
@@ -503,15 +501,6 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
     @Override
     public QueryResult visitSelect_stmt(SQLParser.Select_stmtContext ctx) {
         Database cur_database = GetCurrentDB();
-        for (SQLParser.Result_columnContext c : ctx.result_column()){
-            System.out.println(c.column_full_name().getText().toLowerCase());
-        }
-        for (SQLParser.Table_queryContext c : ctx.table_query()){
-            System.out.println("----");
-            for (SQLParser.Table_nameContext t : c.table_name()){
-                System.out.println(t.getRuleContext().getText().toLowerCase());
-            }
-        }
         boolean distinct = false;
         if (ctx.K_DISTINCT() != null) {
             distinct = true;
@@ -649,12 +638,6 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         }
         return "Quit.";
     }
-
-    @Override //TODO
-    public String visitBegin_transaction_stmt(SQLParser.Begin_transaction_stmtContext ctx) {return null;}
-
-    @Override //TODO
-    public String visitCommit_stmt(SQLParser.Commit_stmtContext ctx) {return null;}
 
     public Object visitParse(SQLParser.ParseContext ctx) {
         return visitSql_stmt_list(ctx.sql_stmt_list());

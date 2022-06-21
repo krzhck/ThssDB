@@ -106,7 +106,6 @@ public class Table implements Iterable<Row> {
       if(this.containsRow(row))
         throw new DuplicateKeyException();
       this.index.put(row.getEntries().get(this.primaryIndex), row);
-      this.isPropertyModified = true;
       }finally {
       // TODO lock control
       lock.writeLock().unlock();
@@ -177,7 +176,7 @@ public class Table implements Iterable<Row> {
       // TODO lock control.
       this.checkRowValidInTable(newRow);
       Row oldRow = this.get(primaryCell);
-      if(this.containsRow(newRow) && primaryCell.equals(newRow.getEntries().get(this.primaryIndex)) == false)
+      if(this.containsRow(newRow))
         throw new DuplicateKeyException();   // 要么删并插入，要么抛出异常
       this.index.remove(primaryCell);
       this.index.put(newRow.getEntries().get(this.primaryIndex), newRow);

@@ -27,7 +27,7 @@ public class SQLParser extends Parser {
 			K_SET=50, K_SHOW=51, K_TABLE=52, K_TO=53, K_UPDATE=54, K_USE=55, K_USER=56,
 			K_VALUES=57, K_VIEW=58, K_WHERE=59, IDENTIFIER=60, NUMERIC_LITERAL=61,
 			EXPONENT=62, STRING_LITERAL=63, SINGLE_LINE_COMMENT=64, MULTILINE_COMMENT=65,
-			SPACES=66, K_BEGIN=67, K_TRANSACTION=68, K_COMMIT=69;
+			SPACES=66;
 	public static final int
 			RULE_parse = 0, RULE_sql_stmt_list = 1, RULE_sql_stmt = 2, RULE_create_db_stmt = 3,
 			RULE_drop_db_stmt = 4, RULE_create_user_stmt = 5, RULE_drop_user_stmt = 6,
@@ -41,7 +41,7 @@ public class SQLParser extends Parser {
 			RULE_table_constraint = 31, RULE_result_column = 32, RULE_table_query = 33,
 			RULE_auth_level = 34, RULE_literal_value = 35, RULE_column_full_name = 36,
 			RULE_database_name = 37, RULE_table_name = 38, RULE_user_name = 39, RULE_column_name = 40,
-			RULE_view_name = 41, RULE_password = 42, RULE_begin_transaction_stmt = 43, RULE_commit_stmt = 44;
+			RULE_view_name = 41, RULE_password = 42;
 	private static String[] makeRuleNames() {
 		return new String[] {
 				"parse", "sql_stmt_list", "sql_stmt", "create_db_stmt", "drop_db_stmt",
@@ -52,7 +52,7 @@ public class SQLParser extends Parser {
 				"type_name", "column_constraint", "multiple_condition", "condition",
 				"comparer", "comparator", "expression", "table_constraint", "result_column",
 				"table_query", "auth_level", "literal_value", "column_full_name", "database_name",
-				"table_name", "user_name", "column_name", "view_name", "password", "begin_transaction_stmt", "commit_stmt"
+				"table_name", "user_name", "column_name", "view_name", "password"
 		};
 	}
 	public static final String[] ruleNames = makeRuleNames();
@@ -75,7 +75,7 @@ public class SQLParser extends Parser {
 				"K_QUIT", "K_REVOKE", "K_SELECT", "K_SET", "K_SHOW", "K_TABLE", "K_TO",
 				"K_UPDATE", "K_USE", "K_USER", "K_VALUES", "K_VIEW", "K_WHERE", "IDENTIFIER",
 				"NUMERIC_LITERAL", "EXPONENT", "STRING_LITERAL", "SINGLE_LINE_COMMENT",
-				"MULTILINE_COMMENT", "SPACES", "K_BEGIN", "K_TRANSACTION", "K_COMMIT"
+				"MULTILINE_COMMENT", "SPACES"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -335,9 +335,9 @@ public class SQLParser extends Parser {
 		public Quit_stmtContext quit_stmt() {
 			return getRuleContext(Quit_stmtContext.class,0);
 		}
-		public Update_stmtContext update_stmt() {return getRuleContext(Update_stmtContext.class,0);}
-		public Begin_transaction_stmtContext begin_transaction_stmt() {return getRuleContext(Begin_transaction_stmtContext.class,0);}
-		public Commit_stmtContext commit_stmt() {return getRuleContext(Commit_stmtContext.class,0);}
+		public Update_stmtContext update_stmt() {
+			return getRuleContext(Update_stmtContext.class,0);
+		}
 		public Sql_stmtContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -495,20 +495,6 @@ public class SQLParser extends Parser {
 				{
 					setState(130);
 					update_stmt();
-				}
-				break;
-				case 20:
-					enterOuterAlt(_localctx, 20);
-				{
-					setState(139);
-					begin_transaction_stmt();
-				}
-				break;
-				case 21:
-					enterOuterAlt(_localctx, 21);
-				{
-					setState(141);
-					commit_stmt();
 				}
 				break;
 			}
@@ -1908,95 +1894,6 @@ public class SQLParser extends Parser {
 		}
 		return _localctx;
 	}
-
-	// TODO zyh
-	public static class Begin_transaction_stmtContext extends ParserRuleContext {
-		public TerminalNode K_BEGIN() { return getToken(SQLParser.K_BEGIN, 0); }
-		public TerminalNode K_TRANSACTION() { return getToken(SQLParser.K_TRANSACTION, 0); }
-		public Begin_transaction_stmtContext(ParserRuleContext parent, int invokingState) {
-			super(parent, invokingState);
-		}
-		@Override public int getRuleIndex() { return RULE_begin_transaction_stmt; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SQLListener ) ((SQLListener)listener).enterBegin_transaction_stmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SQLListener ) ((SQLListener)listener).exitBegin_transaction_stmt(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof SQLVisitor ) return ((SQLVisitor<? extends T>)visitor).visitBegin_transaction_stmt(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-
-	public final Begin_transaction_stmtContext begin_transaction_stmt() throws RecognitionException {
-		Begin_transaction_stmtContext _localctx = new Begin_transaction_stmtContext(_ctx, getState());
-		enterRule(_localctx, 6, RULE_begin_transaction_stmt);
-		try {
-			enterOuterAlt(_localctx, 1);
-			{
-				setState(321);
-				match(K_BEGIN);
-				setState(322);
-				match(K_TRANSACTION);
-			}
-		}
-		catch (RecognitionException re) {
-			_localctx.exception = re;
-			_errHandler.reportError(this, re);
-			_errHandler.recover(this, re);
-		}
-		finally {
-			exitRule();
-		}
-		return _localctx;
-	}
-
-	public static class Commit_stmtContext extends ParserRuleContext {
-		public TerminalNode K_COMMIT() { return getToken(SQLParser.K_COMMIT, 0); }
-		public Commit_stmtContext(ParserRuleContext parent, int invokingState) {
-			super(parent, invokingState);
-		}
-		@Override public int getRuleIndex() { return RULE_commit_stmt; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof SQLListener ) ((SQLListener)listener).enterCommit_stmt(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof SQLListener ) ((SQLListener)listener).exitCommit_stmt(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof SQLVisitor ) return ((SQLVisitor<? extends T>)visitor).visitCommit_stmt(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-
-	public final Commit_stmtContext commit_stmt() throws RecognitionException {
-		Commit_stmtContext _localctx = new Commit_stmtContext(_ctx, getState());
-		enterRule(_localctx, 10, RULE_commit_stmt);
-		try {
-			enterOuterAlt(_localctx, 1);
-			{
-				setState(323);
-				match(K_COMMIT);
-			}
-		}
-		catch (RecognitionException re) {
-			_localctx.exception = re;
-			_errHandler.reportError(this, re);
-			_errHandler.recover(this, re);
-		}
-		finally {
-			exitRule();
-		}
-		return _localctx;
-	}
-	// TODO zyh
 
 	public static class Column_defContext extends ParserRuleContext {
 		public Column_nameContext column_name() {
