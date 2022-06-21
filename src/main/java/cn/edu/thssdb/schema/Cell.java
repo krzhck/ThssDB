@@ -8,6 +8,11 @@ public class Cell implements Comparable<Cell>, Serializable {
   private static final long serialVersionUID = -5809782578272943999L;
   public Comparable value;
 
+  // 用来复制row
+  public Cell(Cell cell) {
+    this.value = cell.value;
+  }
+
   public Cell(Comparable value) {
     this.value = value;
   }
