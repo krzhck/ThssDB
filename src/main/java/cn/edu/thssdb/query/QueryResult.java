@@ -44,18 +44,23 @@ public class QueryResult {
   public QueryResult(QueryTable queryTable, String[] chooseColumns, boolean distinct) {
     this.resultType = QueryResultType.SELECT;
     this.errorMessage = null;
-    this.distinct = distinct;
-//    this.queryTable = queryTable;
-//    initIndex(chooseColumns);
-//    this.attrs = new ArrayList<>();
-
     this.results = new ArrayList<>();
+    this.distinct = distinct;
     this.cNames = chooseColumns;
-//    resultIndex = new ArrayList<>();
-    metaInfos = new ArrayList<>();
-//    metaInfos.addAll(queryTable.genMetaInfo());
+    indices = new ArrayList<>();
 
+    if (cNames == null) {
+      wildcard = true;
+    }
+    else {
+      for (String name : cNames) {
+        MultiRow row = new MultiRow();
+        int index = row.getColumnIndex(name);
+        indices.add(index);
+      }
+    }
   }
+
 
 //  void initIndex(String[] chooseColumns) {
 //    resultIndex = new ArrayList<>();
