@@ -8,13 +8,11 @@ public class Cell implements Comparable<Cell>, Serializable {
   private static final long serialVersionUID = -5809782578272943999L;
   public Comparable value;
 
-  // 用来复制row
-  public Cell(Cell cell) {
-    this.value = cell.value;
-  }
-
   public Cell(Comparable value) {
-    this.value = value;
+    if (value.getClass() == Cell.class)
+      this.value = ((Cell) value).value;
+    else
+      this.value = value;
   }
 
   @Override
@@ -37,7 +35,7 @@ public class Cell implements Comparable<Cell>, Serializable {
   }
 
   public String toString() {
-    return value.toString();
+    return value != null ? value.toString() : Global.ENTRY_NULL;
   }
 
   @Override
