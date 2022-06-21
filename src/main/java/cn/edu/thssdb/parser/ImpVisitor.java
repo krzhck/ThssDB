@@ -501,6 +501,15 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
     @Override
     public QueryResult visitSelect_stmt(SQLParser.Select_stmtContext ctx) {
         Database cur_database = GetCurrentDB();
+        for (SQLParser.Result_columnContext c : ctx.result_column()){
+            System.out.println(c.column_full_name().getText().toLowerCase());
+        }
+        for (SQLParser.Table_queryContext c : ctx.table_query()){
+            System.out.println("----");
+            for (SQLParser.Table_nameContext t : c.table_name()){
+                System.out.println(t.getRuleContext().getText().toLowerCase());
+            }
+        }
         boolean distinct = false;
         if (ctx.K_DISTINCT() != null) {
             distinct = true;
