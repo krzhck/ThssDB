@@ -12,10 +12,6 @@ public class Cell implements Comparable<Cell>, Serializable {
     this.value = value;
   }
 
-  public Cell(Cell cell){
-    this.value = cell.value;
-  }
-
   @Override
   public int compareTo(Cell e) {
     return value.compareTo(e.value);
