@@ -29,6 +29,10 @@ public class Cell implements Comparable<Cell>, Serializable {
     if (this.getClass() != obj.getClass())
       return false;
     Cell e = (Cell) obj;
+    if (value == null)
+      return e.value == null;
+    else if (e.value == null)
+      return value == null;
     return value.equals(e.value);
   }
 

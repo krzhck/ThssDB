@@ -3,6 +3,7 @@ package cn.edu.thssdb.parser;
 
 // TODO: add logic for some important cases, refer to given implementations and SQLBaseVisitor.java for structures
 
+import cn.edu.thssdb.common.Global;
 import cn.edu.thssdb.exception.*;
 import cn.edu.thssdb.query.*;
 import cn.edu.thssdb.schema.Column;
@@ -473,11 +474,12 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         Database database = GetCurrentDB();
         String table_name = ctx.table_name().getText().toLowerCase();
         String column_name = ctx.column_name().getText().toLowerCase();
-        Comparer value = ExpressionVisitor(ctx.expression());
+        Comparable value = ExpressionVisitor(ctx.expression()).mValue;
+        String s_value = (value != null ? value.toString() : Global.ENTRY_NULL);
         SQLParser.Multiple_conditionContext multiple_condition = ctx.multiple_condition();
         if(multiple_condition == null){
             try {
-                return database.update_rows(table_name, column_name, value.mValue.toString(), null);
+                return database.update_rows(table_name, column_name, s_value, null);
             } catch (Exception e) {
                 return e.toString();
             }
@@ -485,7 +487,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         else{
             try {
                 Logic logic = Multiple_conditionVisitor(multiple_condition);
-                return database.update_rows(table_name, column_name, value.mValue.toString(), logic);
+                return database.update_rows(table_name, column_name, s_value, logic);
             } catch (Exception e) {
                 return e.toString();
             }
