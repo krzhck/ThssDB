@@ -232,6 +232,28 @@ public class Table implements Iterable<Row> {
     return columns;
   }
 
+  public int getSLock(long session) {
+    int flag = 0;
+    if (topLock == 2) {
+      if (xLocks.contains(session)) flag = 0;
+      else flag = -1;
+    } else
+    if (topLock == 1) {
+      if (sLocks.contains(session)) flag = 0;
+      else {
+        sLocks.add(session);
+        topLock = 1;
+        flag = 1;
+      }
+    } else
+    if (topLock == 0) {
+      sLocks.add(session);
+      topLock = 1;
+      flag = 1;
+    }
+    return flag;
+  }
+
   public int getXLock(long session) {
     int flag = 0;
     if (topLock == 2) {
@@ -247,6 +269,21 @@ public class Table implements Iterable<Row> {
       flag = 1;
     }
     return flag;
+  }
+
+  public void freeSLock(long session) {
+    if (sLocks.contains(session)) {
+      sLocks.remove(session);
+      if (sLocks.size() == 0) topLock = 0;
+      else topLock = 1;
+    }
+  }
+
+  public void freeXLock(long session) {
+    if (xLocks.contains(session)) {
+      topLock = 0;
+      xLocks.remove(session);
+    }
   }
 
 
