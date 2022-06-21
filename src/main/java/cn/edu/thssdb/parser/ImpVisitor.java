@@ -13,6 +13,7 @@ import cn.edu.thssdb.type.*;
 import javafx.util.Pair;
 
 import javax.management.AttributeNotFoundException;
+import javax.management.Query;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -468,7 +469,46 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      表格项查询
      */
     @Override
-    public QueryResult visitSelect_stmt(SQLParser.Select_stmtContext ctx) {return null;}
+    public QueryResult visitSelect_stmt(SQLParser.Select_stmtContext ctx) {
+        Database cur_database = GetCurrentDB();
+        boolean distinct = false;
+        if (ctx.K_DISTINCT() != null) {
+            distinct = true;
+        }
+        // 获取列名
+        int col_count = ctx.result_column().size();
+        String[] col_selected = new String[col_count];
+        for (int i = 0; i < col_count; i++) {
+            String col_name = ctx.result_column(i).getText().toLowerCase();
+            if (col_name.equals("*")) {
+                col_selected = null;
+                break;
+            }
+            col_selected[i] = col_name;
+        }
+
+        // 建立querytable
+        int query_count = ctx.table_query().size();
+        if (query_count == 0) {
+            throw new WithoutFromTableException();
+        }
+        QueryTable cur_query_table = null;
+        ArrayList<String> table_names = new ArrayList<>();
+
+        try {
+            cur_query_table = Table_queryVisitor(ctx.table_query(0));
+            for (SQLParser.Table_nameContext subctx : ctx.table_query(0).table_name()) {
+                table_names.add(subctx.getText().toLowerCase());
+            }
+        } catch (Exception e) {
+            return new QueryResult(e.toString());
+        }
+        if (cur_query_table == null) {
+            throw new WithoutFromTableException();
+        }
+
+        return null;
+    }
 
     /**
      退出
