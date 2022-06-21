@@ -152,7 +152,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
                     }
                     if (!set) {
 //                        throw new AttributeNotFoundException(item);
-                        return "1111";
+                        return "Primary Key is not admissible!";
                     }
                 }
             }
