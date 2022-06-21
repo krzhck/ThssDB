@@ -22,21 +22,12 @@ public class QueryResult {
   public final QueryResultType resultType;
   public final String errorMessage; // If it is an error.
 
-  private List<MetaInfo> metaInfos;
   private List<String> columnNames;
-
   public List<Row> results;
-
   private List<Integer> indices;
-  private Predicate<Row> predicate;
-
-  public String[] cNames;
   public boolean distinct;
   public boolean wildcard = false;
-
-  private boolean onlyMessage=false;
   private QueryTable queryTable;
-  private HashSet<String> hashSet = new HashSet<>();
 
 
   public QueryResult(QueryTable queryTable, String[] chooseColumns, boolean distinct) {
@@ -44,22 +35,13 @@ public class QueryResult {
     this.errorMessage = null;
     this.results = new ArrayList<>();
     this.distinct = distinct;
-    this.cNames = chooseColumns;
     indices = new ArrayList<>();
     this.queryTable = queryTable;
     this.columnNames = new ArrayList<>();
-
-    if (cNames == null) {
+    if (chooseColumns == null) {
       wildcard = true;
     }
-    else {
-      initIndex(chooseColumns);
-//      for (String name : cNames) {
-//        MultiRow row = new MultiRow();
-//        int index = row.getColumnIndex(name);
-//        indices.add(index);
-//      }
-    }
+    initIndex(chooseColumns);
   }
 
   void initIndex(String[] chooseColumns) {
@@ -84,7 +66,6 @@ public class QueryResult {
   public QueryResult(QueryTable[] queryTables) {
     this.resultType = QueryResultType.SELECT;
     this.errorMessage = null;
-    // TODO
   }
 
   public QueryResult(String errorMessage){
@@ -103,24 +84,9 @@ public class QueryResult {
     else {
       results.add(row);
     }
-//    if (!orderIndices.isEmpty()) {
-//      results.sort((o1, o2) -> {
-//        for (Integer i : orderIndices) {
-//          int cmp = o1.getEntries().get(i).compareTo(o2.getEntries().get(i));
-//          if (cmp > 0) {
-//            return order ? 1 : -1;
-//          }
-//          else if (cmp < 0) {
-//            return order ? -1 : 1;
-//          }
-//        }
-//        return 0;
-//      });
-//    }
   }
 
   public static Row combineRow(LinkedList<Row> rows) {
-    // TODO
     Row r = new Row();
     for (int i = rows.size() - 1; i >= 0; i--) {
       r.appendEntries(rows.get(i).getEntries());
@@ -129,7 +95,6 @@ public class QueryResult {
   }
 
   public Row generateQueryRecord(Row row) {
-    // TODO
     if (wildcard) {
       return row;
     }
@@ -140,5 +105,5 @@ public class QueryResult {
     return new Row(record.toArray(new Cell[indices.size()]));
   }
 
-  public List<String> getColumnNames(){return this.columnNames;}
+  public List<String> getColumnNames(){ return this.columnNames; }
 }

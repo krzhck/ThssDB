@@ -23,7 +23,6 @@ public class QueryTable implements Iterator<Row> {
   ArrayList<Row> currentRow;
   Logic selectLogic = null;
   Logic joinLogic = null;
-//  protected Queue<Row> buf;
 
 
   public QueryTable(Table table) {
@@ -110,14 +109,12 @@ public class QueryTable implements Iterator<Row> {
 
   @Override
   public boolean hasNext() {
-    // TODO
     checkFirstSet();
     return !isEmpty;
   }
 
 //  @Override
 //  public Row next() {
-//    // TODO
 //    return null;
 //  }
 
