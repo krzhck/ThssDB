@@ -193,7 +193,6 @@ public class Database {
 
   // TODO Query: please also add other functions needed at Database level.
   public QueryResult select(QueryTable queryTable, String[] returnColumns, boolean isDistinct) {
-    // TODO: support select operations
     try {
       lock.readLock().lock();
       QueryResult queryResult = new QueryResult(queryTable, returnColumns, isDistinct);
@@ -203,7 +202,6 @@ public class Database {
         queryResult.addRow(rows);
         rows.clear();
       }
-
       return queryResult;
     } finally {
       lock.readLock().unlock();
@@ -211,7 +209,6 @@ public class Database {
   }
 
 //  public String select(QueryTable[] queryTables) {
-//    // TODO: support select operations
 //    QueryResult queryResult = new QueryResult(queryTables);
 //    return null;
 //  }
