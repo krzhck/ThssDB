@@ -552,4 +552,12 @@ public class SQLBaseListener implements SQLListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void visitErrorNode(ErrorNode node) { }
+
+	@Override public void enterBegin_transaction_stmt(SQLParser.Begin_transaction_stmtContext ctx) { }
+
+	@Override public void exitBegin_transaction_stmt(SQLParser.Begin_transaction_stmtContext ctx) { }
+
+	@Override public void enterCommit_stmt(SQLParser.Commit_stmtContext ctx) { }
+
+	@Override public void exitCommit_stmt(SQLParser.Commit_stmtContext ctx) { }
 }
