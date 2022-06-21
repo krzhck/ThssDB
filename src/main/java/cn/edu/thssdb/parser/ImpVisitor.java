@@ -13,6 +13,7 @@ import cn.edu.thssdb.type.*;
 import javafx.util.Pair;
 
 import javax.management.AttributeNotFoundException;
+import javax.management.Query;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -225,6 +226,18 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         }
     }
 
+    @Override
+    public String visitShow_table_stmt(SQLParser.Show_table_stmtContext ctx) {
+        try {
+            return GetCurrentDB().toString();
+        }
+        catch (Exception e) {
+            return e.getMessage();
+        }
+    }
+
+    @Override
+    public String visitShow_db_stmt(SQLParser.Show_db_stmtContext ctx) {return null;}
 
     @Override
     public String visitShow_table_stmt(SQLParser.Show_table_stmtContext ctx) {
@@ -466,7 +479,132 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
      表格项查询
      */
     @Override
-    public QueryResult visitSelect_stmt(SQLParser.Select_stmtContext ctx) {return null;}
+    public QueryResult visitSelect_stmt(SQLParser.Select_stmtContext ctx) {
+        Database cur_database = GetCurrentDB();
+        boolean distinct = false;
+        if (ctx.K_DISTINCT() != null) {
+            distinct = true;
+        }
+        // 获取列名
+        int col_count = ctx.result_column().size();
+        String[] col_selected = new String[col_count];
+        for (int i = 0; i < col_count; i++) {
+            String col_name = ctx.result_column(i).getText().toLowerCase();
+            if (col_name.equals("*")) {
+                col_selected = null;
+                break;
+            }
+            col_selected[i] = col_name;
+        }
+
+        // 建立querytable
+        int query_count = ctx.table_query().size();
+        if (query_count == 0) {
+            throw new WithoutFromTableException();
+        }
+        QueryTable cur_query_table = null;
+        ArrayList<String> table_names = new ArrayList<>();
+
+        try {
+            cur_query_table = Table_queryVisitor(ctx.table_query(0));
+            for (SQLParser.Table_nameContext subctx : ctx.table_query(0).table_name()) {
+                table_names.add(subctx.getText().toLowerCase());
+            }
+        } catch (Exception e) {
+            return new QueryResult(e.toString());
+        }
+        if (cur_query_table == null) {
+            throw new WithoutFromTableException();
+        }
+        // 建立逻辑，获得结果
+        Logic logic = null;
+        if (ctx.K_WHERE() != null) {
+            logic = Multiple_conditionVisitor(ctx.multiple_condition());
+        }
+        cur_query_table.setLogic(logic);
+
+        if (manager.getSessionsInTransactions().contains(session)) {
+            while(true) {
+                if (!manager.getSessionsInLocks().contains(session)) {
+                    ArrayList<Integer> lock_res = new ArrayList<>();
+                    for (String name : table_names) {
+                        Table cur_table = cur_database.get(name);
+                        int get_lock = cur_table.getSLock(session);
+                        lock_res.add(get_lock);
+                    }
+                    if (lock_res.contains(-1)) {
+                        for (String name : table_names) {
+                            Table cur_table = cur_database.get(name);
+                            cur_table.freeSLock(session);
+                        }
+                        manager.getSessionsInLocks().add(session);
+                    }
+                    else {
+                        break;
+                    }
+                }
+                else {
+                    if(manager.getSessionsInLocks().get(0)==session)  //只查看阻塞队列开头session
+                    {
+                        ArrayList<Integer> lock_res = new ArrayList<>();
+                        for (String name : table_names) {
+                            Table cur_table = cur_database.get(name);
+                            int get_lock = cur_table.getSLock(session);
+                            lock_res.add(get_lock);
+                        }
+                        if(!lock_res.contains(-1))
+                        {
+                            manager.getSessionsInLocks().remove(0);
+                            break;
+                        }else
+                        {
+                            for (String name : table_names) {
+                                Table cur_table = cur_database.get(name);
+                                cur_table.freeSLock(session);
+                            }
+                        }
+                    }
+                }
+                try {
+                    Thread.sleep(500);
+                }
+                catch (Exception e) {
+                    System.out.println("Got an Exception!");
+                }
+            }
+            try {
+                for (String name : table_names) {
+                    Table cur_table = cur_database.getTable(name);
+                    cur_table.freeSLock(session);
+                }
+                return cur_database.select(cur_query_table, col_selected, distinct);
+            } catch (Exception e) {
+                return new QueryResult(e.toString());
+            }
+        }
+        else {
+            try {
+                return cur_database.select(cur_query_table, col_selected, distinct);
+            } catch (Exception e) {
+                return new QueryResult(e.toString());
+            }
+        }
+    }
+
+    public QueryTable Table_queryVisitor(SQLParser.Table_queryContext ctx) {
+        Database cur_database = GetCurrentDB();
+        if (ctx.K_JOIN().size() == 0) { // 单一表
+            return cur_database.getSingleQueryTable(ctx.table_name(0).getText().toLowerCase());
+        }
+        else { // 复合表
+            Logic logic = Multiple_conditionVisitor(ctx.multiple_condition());
+            ArrayList<String> table_names = new ArrayList<>();
+            for (SQLParser.Table_nameContext subctx : ctx.table_name()) {
+                table_names.add(subctx.getText().toLowerCase());
+            }
+            return cur_database.getMultiQueryTable(table_names, logic);
+        }
+    }
 
     /**
      退出

@@ -10,3 +10,6 @@ commit
 begin transaction
 insert into n (a,b) values (2, 0)
 commit
+begin transaction
+insert into a values(1)
+commit

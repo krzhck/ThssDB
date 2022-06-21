@@ -16,6 +16,7 @@ import cn.edu.thssdb.common.Global;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -172,10 +173,45 @@ public class Database {
   }
 
   // TODO Query: please also add other functions needed at Database level.
-  public String select(QueryTable[] queryTables) {
+  public QueryResult select(QueryTable queryTable, String[] returnColumns, boolean isDistinct) {
     // TODO: support select operations
-    QueryResult queryResult = new QueryResult(queryTables);
-    return null;
+    try {
+      lock.readLock().lock();
+      return new QueryResult(queryTable, returnColumns, isDistinct);
+    } finally {
+      lock.readLock().unlock();
+    }
+  }
+
+  public QueryTable getSingleQueryTable(String tableName) {
+    try {
+      lock.readLock().lock();
+      if (tableMap.containsKey(tableName)) {
+        return new QueryTable(tableMap.get(tableName));
+      }
+      else {
+        throw new TableNotExistException(tableName);
+      }
+    }
+    finally {
+      lock.readLock().unlock();
+    }
+  }
+
+  public QueryTable getMultiQueryTable(List<String > tableNames, Logic logic) {
+    try {
+      lock.readLock().lock();
+      ArrayList<Table> multiTables = new ArrayList<>();
+      for(String tableName : tableNames) {
+        if (tableMap.containsKey(tableName)) {
+          multiTables.add(tableMap.get(tableName));
+        } else
+          throw new TableNotExistsException(databaseName, tableName);
+      }
+      return new QueryTable(multiTables, logic);
+    } finally {
+      lock.readLock().unlock();
+    }
   }
 
 
