@@ -48,18 +48,19 @@ public class QueryResult {
     indices = new ArrayList<>();
     this.queryTable = queryTable;
     this.columnNames = new ArrayList<>();
+    initIndex(chooseColumns);
 
-    if (cNames == null) {
-      wildcard = true;
-    }
-    else {
-      initIndex(chooseColumns);
-//      for (String name : cNames) {
-//        MultiRow row = new MultiRow();
-//        int index = row.getColumnIndex(name);
-//        indices.add(index);
-//      }
-    }
+//    if (cNames == null) {
+//      wildcard = true;
+//    }
+//    else {
+//      initIndex(chooseColumns);
+////      for (String name : cNames) {
+////        MultiRow row = new MultiRow();
+////        int index = row.getColumnIndex(name);
+////        indices.add(index);
+////      }
+//    }
   }
 
   void initIndex(String[] chooseColumns) {
