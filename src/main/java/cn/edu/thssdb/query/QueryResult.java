@@ -28,53 +28,58 @@ public class QueryResult {
   public List<Row> results;
 
   private List<Integer> indices;
-  private List<Integer> orderIndices;
-  private List<MetaInfo> infos;
   private Predicate<Row> predicate;
 
   public String[] cNames;
-  public String[] orderColumnNames;
-  public boolean order;
   public boolean distinct;
   public boolean wildcard = false;
 
   private boolean onlyMessage=false;
-  private String message;
+  private QueryTable queryTable;
+  private HashSet<String> hashSet = new HashSet<>();
+
 
   public QueryResult(QueryTable queryTable, String[] chooseColumns, boolean distinct) {
     this.resultType = QueryResultType.SELECT;
     this.errorMessage = null;
-    this.distinct = distinct;
-//    this.queryTable = queryTable;
-//    initIndex(chooseColumns);
-//    this.attrs = new ArrayList<>();
-
     this.results = new ArrayList<>();
+    this.distinct = distinct;
     this.cNames = chooseColumns;
-//    resultIndex = new ArrayList<>();
-    metaInfos = new ArrayList<>();
-//    metaInfos.addAll(queryTable.genMetaInfo());
+    indices = new ArrayList<>();
+    this.queryTable = queryTable;
+    this.columnNames = new ArrayList<>();
 
+    if (cNames == null) {
+      wildcard = true;
+    }
+    else {
+      initIndex(chooseColumns);
+//      for (String name : cNames) {
+//        MultiRow row = new MultiRow();
+//        int index = row.getColumnIndex(name);
+//        indices.add(index);
+//      }
+    }
   }
 
-//  void initIndex(String[] chooseColumns) {
-//    resultIndex = new ArrayList<>();
-//    if (chooseColumns == null || chooseColumns.length == 0) {
-//      int count = 0;
-//      for(Table table : queryTable.tables) {
-//        for(int i = 0; i < table.getColumns().size(); i++) {
-//          resultIndex.add(count ++);
-//          resultColumnNames.add(table.getColumns().get(i).getColumnName());
-//        }
-//      }
-//    } else {
-//      MultiRow temp = new MultiRow(null, queryTable.tables);
-//      for (String i : chooseColumns) {
-//        resultIndex.add(temp.getColumnIndex(i));
-//        resultColumnNames.add(i);
-//      }
-//    }
-//  }
+  void initIndex(String[] chooseColumns) {
+    indices = new ArrayList<>();
+    if (chooseColumns == null || chooseColumns.length == 0) {
+      int count = 0;
+      for(Table table : queryTable.tables) {
+        for(int i = 0; i < table.getColumns().size(); i++) {
+          indices.add(count ++);
+          columnNames.add(table.getColumns().get(i).getColumnName());
+        }
+      }
+    } else {
+      MultiRow temp = new MultiRow(null, queryTable.tables);
+      for (String i : chooseColumns) {
+        indices.add(temp.getColumnIndex(i));
+        columnNames.add(i);
+      }
+    }
+  }
 
   public QueryResult(QueryTable[] queryTables) {
     this.resultType = QueryResultType.SELECT;
@@ -98,20 +103,20 @@ public class QueryResult {
     else {
       results.add(row);
     }
-    if (!orderIndices.isEmpty()) {
-      results.sort((o1, o2) -> {
-        for (Integer i : orderIndices) {
-          int cmp = o1.getEntries().get(i).compareTo(o2.getEntries().get(i));
-          if (cmp > 0) {
-            return order ? 1 : -1;
-          }
-          else if (cmp < 0) {
-            return order ? -1 : 1;
-          }
-        }
-        return 0;
-      });
-    }
+//    if (!orderIndices.isEmpty()) {
+//      results.sort((o1, o2) -> {
+//        for (Integer i : orderIndices) {
+//          int cmp = o1.getEntries().get(i).compareTo(o2.getEntries().get(i));
+//          if (cmp > 0) {
+//            return order ? 1 : -1;
+//          }
+//          else if (cmp < 0) {
+//            return order ? -1 : 1;
+//          }
+//        }
+//        return 0;
+//      });
+//    }
   }
 
   public static Row combineRow(LinkedList<Row> rows) {
@@ -125,7 +130,14 @@ public class QueryResult {
 
   public Row generateQueryRecord(Row row) {
     // TODO
-    return null;
+    if (wildcard) {
+      return row;
+    }
+    ArrayList<Cell> record = new ArrayList<>();
+    for (int i : indices) {
+      record.add(row.getEntries().get(i));
+    }
+    return new Row(record.toArray(new Cell[indices.size()]));
   }
 
   public List<String> getColumnNames(){return this.columnNames;}

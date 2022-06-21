@@ -603,7 +603,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
             }
             try {
                 for (String name : table_names) {
-                    Table cur_table = cur_database.getTable(name);
+                    Table cur_table = cur_database.get(name);
                     cur_table.freeSLock(session);
                 }
                 return cur_database.select(cur_query_table, col_selected, distinct);
