@@ -262,7 +262,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         for (SQLParser.Value_entryContext item : ctx.value_entry()) {
             String[] values = visitValue_entry(item);
             try {
-                the_database.insert(table_name, column_names, values);
+                the_database.insert_single_row(table_name, column_names, values);
             } catch (Exception e) {
                 return e.toString();
             }

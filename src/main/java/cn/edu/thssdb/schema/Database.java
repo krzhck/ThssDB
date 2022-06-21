@@ -161,36 +161,14 @@ public class Database {
     }
   }
 
-  public void insert(String tableName, String[] columnNames, String[] values){
+  public void insert_single_row(String tableName, String[] columnNames, String[] values){
     Table table = get(tableName);
-    ArrayList<Cell> cell_list = new ArrayList<Cell>();
-    if (columnNames.length == 0) {
-      int len = values.length;
-      for (int i = 0; i < len; i++){
-        cell_list.add(Column.parseEntry(values[i], table.columns.get(i)));
-      }
-    } else {
-      int len = columnNames.length;
-      if (len != values.length){
-        throw new RuntimeException("The numbers of columns and values given don't match!");
-      }
-      for (Column column : table.columns){
-        int index = -1;
-        for (int i = 0; i < len; i++){
-          if (column.getColumnName().equals(columnNames[i])){
-            index = i;
-          }
-        }
-        if (index == -1){
-          cell_list.add(new Cell(null));
-        }
-        else{
-          cell_list.add(Column.parseEntry(values[index], column));
-        }
-      }
-    }
-    table.insert(new Row(cell_list));
-    table.persist();
+    table.insert_single_row(columnNames, values);
+  }
+
+  public void update_rows(String table_name, String column_name, Comparable value, Logic logic){
+    Table table = get(table_name);
+    table.update_rows(column_name, value, logic);
   }
 
   // TODO Query: please also add other functions needed at Database level.
