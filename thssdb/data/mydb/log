@@ -13,3 +13,5 @@ commit
 begin transaction
 insert into a values(1)
 commit
+begin transaction
+commit
