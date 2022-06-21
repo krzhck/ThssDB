@@ -14,10 +14,7 @@ import cn.edu.thssdb.query.QueryTable;
 import cn.edu.thssdb.common.Global;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
@@ -199,11 +196,25 @@ public class Database {
     // TODO: support select operations
     try {
       lock.readLock().lock();
-      return new QueryResult(queryTable, returnColumns, isDistinct);
+      QueryResult queryResult = new QueryResult(queryTable, returnColumns, isDistinct);
+      LinkedList<Row> rows = new LinkedList<>();
+      while (queryTable.hasNext()) {
+        rows.push(queryTable.next());
+        queryResult.addRow(rows);
+        rows.clear();
+      }
+
+      return queryResult;
     } finally {
       lock.readLock().unlock();
     }
   }
+
+//  public String select(QueryTable[] queryTables) {
+//    // TODO: support select operations
+//    QueryResult queryResult = new QueryResult(queryTables);
+//    return null;
+//  }
 
   public QueryTable getSingleQueryTable(String tableName) {
     try {

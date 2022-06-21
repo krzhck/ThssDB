@@ -1,5 +1,6 @@
 package cn.edu.thssdb.query;
 
+import cn.edu.thssdb.schema.MetaInfo;
 import cn.edu.thssdb.schema.Row;
 import cn.edu.thssdb.schema.Table;
 
@@ -20,6 +21,7 @@ public class QueryTable implements Iterator<Row> {
   ArrayList<Row> currentRow;
   Logic selectLogic = null;
   Logic joinLogic = null;
+//  public ArrayList<MetaInfo> genMetaInfo() {return null;}
 
   public QueryTable(Table table) {
     // TODO
