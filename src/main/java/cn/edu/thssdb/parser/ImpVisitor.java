@@ -226,6 +226,18 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         }
     }
 
+    @Override
+    public String visitShow_table_stmt(SQLParser.Show_table_stmtContext ctx) {
+        try {
+            return GetCurrentDB().toString();
+        }
+        catch (Exception e) {
+            return e.getMessage();
+        }
+    }
+
+    @Override
+    public String visitShow_db_stmt(SQLParser.Show_db_stmtContext ctx) {return null;}
 
     @Override
     public String visitShow_table_stmt(SQLParser.Show_table_stmtContext ctx) {
@@ -504,8 +516,94 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         if (cur_query_table == null) {
             throw new WithoutFromTableException();
         }
+        // 建立逻辑，获得结果
+        Logic logic = null;
+        if (ctx.K_WHERE() != null) {
+            logic = Multiple_conditionVisitor(ctx.multiple_condition());
+        }
+        cur_query_table.setLogic(logic);
 
-        return null;
+        if (manager.getSessionsInTransactions().contains(session)) {
+            while(true) {
+                if (!manager.getSessionsInLocks().contains(session)) {
+                    ArrayList<Integer> lock_res = new ArrayList<>();
+                    for (String name : table_names) {
+                        Table cur_table = cur_database.get(name);
+                        int get_lock = cur_table.getSLock(session);
+                        lock_res.add(get_lock);
+                    }
+                    if (lock_res.contains(-1)) {
+                        for (String name : table_names) {
+                            Table cur_table = cur_database.get(name);
+                            cur_table.freeSLock(session);
+                        }
+                        manager.getSessionsInLocks().add(session);
+                    }
+                    else {
+                        break;
+                    }
+                }
+                else {
+                    if(manager.getSessionsInLocks().get(0)==session)  //只查看阻塞队列开头session
+                    {
+                        ArrayList<Integer> lock_res = new ArrayList<>();
+                        for (String name : table_names) {
+                            Table cur_table = cur_database.get(name);
+                            int get_lock = cur_table.getSLock(session);
+                            lock_res.add(get_lock);
+                        }
+                        if(!lock_res.contains(-1))
+                        {
+                            manager.getSessionsInLocks().remove(0);
+                            break;
+                        }else
+                        {
+                            for (String name : table_names) {
+                                Table cur_table = cur_database.get(name);
+                                cur_table.freeSLock(session);
+                            }
+                        }
+                    }
+                }
+                try {
+                    Thread.sleep(500);
+                }
+                catch (Exception e) {
+                    System.out.println("Got an Exception!");
+                }
+            }
+            try {
+                for (String name : table_names) {
+                    Table cur_table = cur_database.getTable(name);
+                    cur_table.freeSLock(session);
+                }
+                return cur_database.select(cur_query_table, col_selected, distinct);
+            } catch (Exception e) {
+                return new QueryResult(e.toString());
+            }
+        }
+        else {
+            try {
+                return cur_database.select(cur_query_table, col_selected, distinct);
+            } catch (Exception e) {
+                return new QueryResult(e.toString());
+            }
+        }
+    }
+
+    public QueryTable Table_queryVisitor(SQLParser.Table_queryContext ctx) {
+        Database cur_database = GetCurrentDB();
+        if (ctx.K_JOIN().size() == 0) { // 单一表
+            return cur_database.getSingleQueryTable(ctx.table_name(0).getText().toLowerCase());
+        }
+        else { // 复合表
+            Logic logic = Multiple_conditionVisitor(ctx.multiple_condition());
+            ArrayList<String> table_names = new ArrayList<>();
+            for (SQLParser.Table_nameContext subctx : ctx.table_name()) {
+                table_names.add(subctx.getText().toLowerCase());
+            }
+            return cur_database.getMultiQueryTable(table_names, logic);
+        }
     }
 
     /**
