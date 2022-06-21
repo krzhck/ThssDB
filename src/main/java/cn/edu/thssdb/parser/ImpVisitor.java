@@ -67,6 +67,8 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         }
         if (ctx.update_stmt() != null) return new QueryResult(visitUpdate_stmt(ctx.update_stmt()));
         if (ctx.select_stmt() != null) return visitSelect_stmt(ctx.select_stmt());
+        if (ctx.begin_transaction_stmt() != null) return new QueryResult(visitBegin_transaction_stmt(ctx.begin_transaction_stmt()));
+        if (ctx.commit_stmt() != null) return new QueryResult(visitCommit_stmt(ctx.commit_stmt()));
         if (ctx.quit_stmt() != null) return new QueryResult(visitQuit_stmt(ctx.quit_stmt()));
         return null;
     }
@@ -647,6 +649,12 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         }
         return "Quit.";
     }
+
+    @Override //TODO
+    public String visitBegin_transaction_stmt(SQLParser.Begin_transaction_stmtContext ctx) {return null;}
+
+    @Override //TODO
+    public String visitCommit_stmt(SQLParser.Commit_stmtContext ctx) {return null;}
 
     public Object visitParse(SQLParser.ParseContext ctx) {
         return visitSql_stmt_list(ctx.sql_stmt_list());
