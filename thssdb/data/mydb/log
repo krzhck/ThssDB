@@ -13,3 +13,150 @@ commit
 begin transaction
 insert into a values(1)
 commit
+begin transaction
+insert into m values (0)
+commit
+begin transaction
+insert into m values (0)
+commit
+begin transaction
+insert into m values (1)
+commit
+begin transaction
+update m set a = 0 where a = 1
+commit
+begin transaction
+update m set a = 0 where a = 1
+commit
+begin transaction
+update m set a = 2 where a = 1
+commit
+begin transaction
+update m set a = 100 where a = 1
+commit
+begin transaction
+update m set a = 100 where a = 1
+commit
+begin transaction
+update m set a = 2 where a = 0
+commit
+begin transaction
+update m set a = 3 where a = 0
+commit
+begin transaction
+update m set a = 0 where a = 2
+commit
+begin transaction
+update m set a = 1 where a = 100
+commit
+begin transaction
+update m set a = 2 where a = 3
+commit
+begin transaction
+update m set a = 2 where a = 1
+commit
+begin transaction
+update m set a = 2 where a = 4
+commit
+begin transaction
+update m set a = 3 where a = 1
+commit
+begin transaction
+update m set a = 1 where a = 2
+commit
+begin transaction
+update m set a = 2 where a = 3
+commit
+begin transaction
+insert into n values ( 0 , 0 )
+commit
+begin transaction
+update n set b = null where a = 0
+commit
+begin transaction
+update n set b = 1 where a = 0
+commit
+begin transaction
+update n set a = 1 where a = 0
+commit
+begin transaction
+update n set a = 1 where a = 0
+commit
+begin transaction
+update n set a = 1 where a = 0
+commit
+begin transaction
+update n set a = 1 where a = 0
+commit
+begin transaction
+update n set a = 1 where a = 0
+commit
+begin transaction
+update n set a = 1 where a = 0
+commit
+begin transaction
+update n set a = 1 where a = 1
+commit
+begin transaction
+update n set a = 0 where a = 1
+commit
+begin transaction
+update n set b = 1 where a = 0
+commit
+begin transaction
+update n set a = 1 where a = 0
+commit
+begin transaction
+update n set a = 0 where a = 1
+commit
+begin transaction
+update n set b = 1 where a = 0
+commit
+begin transaction
+update n set b = 1 where a = 0
+commit
+begin transaction
+update n set b = 1 where a = 0
+commit
+begin transaction
+update n set b = 1 where a = 1
+commit
+begin transaction
+update n set b = 0 where a = 0
+commit
+begin transaction
+update n set a = 0 where a = 0
+commit
+begin transaction
+update n set a = 1 where b = 0
+commit
+begin transaction
+insert into n values (1, 1)
+commit
+begin transaction
+update n set a = 0 where a = 1
+commit
+begin transaction
+insert into n values (1, )
+commit
+begin transaction
+insert int
+commit
+begin transaction
+insert into n values (1,1)
+commit
+begin transaction
+update n set b = 0 where b != 0
+commit
+begin transaction
+update n set b = 0 where b <> 0
+commit
+begin transaction
+update n set a = 2 where b = 0
+commit
+begin transaction
+insert into n values (2, 0)
+commit
+begin transaction
+insert into n values (0,0)
+commit
