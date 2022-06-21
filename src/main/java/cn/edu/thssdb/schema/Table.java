@@ -106,10 +106,42 @@ public class Table implements Iterable<Row> {
       if(this.containsRow(row))
         throw new DuplicateKeyException();
       this.index.put(row.getEntries().get(this.primaryIndex), row);
+      this.isPropertyModified = true;
       }finally {
       // TODO lock control
       lock.writeLock().unlock();
     }
+  }
+
+  public void insert_single_row(String[] columnNames, String[] values){
+    ArrayList<Cell> cell_list = new ArrayList<>();
+    if (columnNames.length == 0) {
+      int len = values.length;
+      for (int i = 0; i < len; i++){
+        cell_list.add(Column.parseEntry(values[i], columns.get(i)));
+      }
+    } else {
+      int len = columnNames.length;
+      if (len != values.length){
+        throw new RuntimeException("The numbers of columns and values given don't match!");
+      }
+      for (Column column : columns){
+        int index = -1;
+        for (int i = 0; i < len; i++){
+          if (column.getColumnName().equals(columnNames[i])){
+            index = i;
+          }
+        }
+        if (index == -1){
+          cell_list.add(new Cell(null));
+        }
+        else{
+          cell_list.add(Column.parseEntry(values[index], column));
+        }
+      }
+    }
+    insert(new Row(cell_list));
+    persist();
   }
 
   public void delete(Row row) {
@@ -152,6 +184,34 @@ public class Table implements Iterable<Row> {
     }finally {
       // TODO lock control.
     }
+  }
+
+  public String update_rows(String column_name, String value, Logic logic){
+    TableIterator it = (TableIterator) iterator();
+    int update_count = 0;
+    while(it.hasNext()){
+      Row row = it.next();
+      MultiRow multiRow = new MultiRow(row, this);
+      if (logic == null || logic.exec(multiRow) == BoolType.TRUE){
+        Cell primary_cell = row.getEntries().get(primaryIndex);
+        Row new_row = new Row(row);
+        int len = columns.size();
+        int match_column = -1;
+        for (int i = 0; i < len; i++){
+          if (column_name.equals(columns.get(i).getColumnName())){
+            match_column = i;
+          }
+        }
+        if (match_column == -1){
+          throw new AttributeNotFoundException(column_name);
+        }
+        Cell new_cell = Column.parseEntry(value, columns.get(match_column));
+        new_row.getEntries().set(match_column, new_cell);
+        update(primary_cell, new_row);
+        update_count++;
+      }
+    }
+    return "Updated " + update_count + " rows.";
   }
 
   private void serialize() {
