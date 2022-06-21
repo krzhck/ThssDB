@@ -3,6 +3,7 @@ package cn.edu.thssdb.parser;
 
 // TODO: add logic for some important cases, refer to given implementations and SQLBaseVisitor.java for structures
 
+import cn.edu.thssdb.common.Global;
 import cn.edu.thssdb.exception.*;
 import cn.edu.thssdb.query.*;
 import cn.edu.thssdb.schema.Column;
@@ -473,11 +474,12 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         Database database = GetCurrentDB();
         String table_name = ctx.table_name().getText().toLowerCase();
         String column_name = ctx.column_name().getText().toLowerCase();
-        Comparer value = ExpressionVisitor(ctx.expression());
+        Comparable value = ExpressionVisitor(ctx.expression()).mValue;
+        String s_value = (value != null ? value.toString() : Global.ENTRY_NULL);
         SQLParser.Multiple_conditionContext multiple_condition = ctx.multiple_condition();
         if(multiple_condition == null){
             try {
-                return database.update_rows(table_name, column_name, value.mValue.toString(), null);
+                return database.update_rows(table_name, column_name, s_value, null);
             } catch (Exception e) {
                 return e.toString();
             }
@@ -485,7 +487,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         else{
             try {
                 Logic logic = Multiple_conditionVisitor(multiple_condition);
-                return database.update_rows(table_name, column_name, value.mValue.toString(), logic);
+                return database.update_rows(table_name, column_name, s_value, logic);
             } catch (Exception e) {
                 return e.toString();
             }
@@ -499,6 +501,15 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
     @Override
     public QueryResult visitSelect_stmt(SQLParser.Select_stmtContext ctx) {
         Database cur_database = GetCurrentDB();
+        for (SQLParser.Result_columnContext c : ctx.result_column()){
+            System.out.println(c.column_full_name().getText().toLowerCase());
+        }
+        for (SQLParser.Table_queryContext c : ctx.table_query()){
+            System.out.println("----");
+            for (SQLParser.Table_nameContext t : c.table_name()){
+                System.out.println(t.getRuleContext().getText().toLowerCase());
+            }
+        }
         boolean distinct = false;
         if (ctx.K_DISTINCT() != null) {
             distinct = true;
@@ -592,7 +603,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
             }
             try {
                 for (String name : table_names) {
-                    Table cur_table = cur_database.getTable(name);
+                    Table cur_table = cur_database.get(name);
                     cur_table.freeSLock(session);
                 }
                 return cur_database.select(cur_query_table, col_selected, distinct);
