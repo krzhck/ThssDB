@@ -412,7 +412,8 @@ public class Table implements Iterable<Row> {
   public String toString(){
     StringBuilder s = new StringBuilder("Table " + this.tableName + ": ");
     for (Column column : this.columns) s.append("\t(").append(column.toString()).append(')');
-    return s.toString() + "\n";
+//    return s.toString() + "\n";
+    return s.toString();
   }
 
 }
