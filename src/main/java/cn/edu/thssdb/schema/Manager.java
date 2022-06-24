@@ -163,57 +163,57 @@ public class Manager {
 
   // TODO: read Log in transaction to recover.
   public void readLog(String databaseName) {
-//    Database database = databases.get(databaseName);
-//    String filename = database.getDatabaseLogFilePath();
-//    File file = new File(filename);
-//    if (file.exists() && file.isFile()) {
-//      System.out.println("Reading Log...");
-//      sqlHandler.evaluate("use " + databaseName, 0); // session?
-//      int lastCmd = 0;
-//      ArrayList<String> lines = new ArrayList<>();
-//      ArrayList<Integer> mSessionInTransactions = new ArrayList<>();
-//      ArrayList<Integer> mSessionCommitted = new ArrayList<>();
-//      try(InputStreamReader reader = new InputStreamReader(new FileInputStream(file));
-//          BufferedReader bufferedReader = new BufferedReader(reader)) {
-//        String line;
-//        int index = 0;
-//        while((line = bufferedReader.readLine()) != null) {
-//          if (line.equals("begin transaction")) {
-//            mSessionInTransactions.add(index);
-//          } else
-//          if (line.equals("commit")) {
-//            mSessionCommitted.add(index);
-//          }
-//          lines.add(line);
-//          index++;
-//        }
-//        if (mSessionInTransactions.size() == mSessionCommitted.size()) {
-//          lastCmd = lines.size() - 1;
-//        } else {
-//          lastCmd = mSessionInTransactions.get(mSessionInTransactions.size() - 1);
-//        }
-//        for (int i = 0; i <= lastCmd; i++) {
-//          sqlHandler.evaluate(lines.get(i), 0); // 0?
-//        }
-//        System.out.println("Read logs completed. Read " + (lastCmd + 1) + " logs");
-//      } catch (FileNotFoundException e) {
-//        e.printStackTrace();
-//      } catch (IOException e) {
-//        e.printStackTrace();
-//      }
-//      try(FileWriter writer = new FileWriter(filename)) {
-//        writer.write("");
-//      } catch (IOException e) {
-//        e.printStackTrace();
-//      }
-//      try(FileWriter writer = new FileWriter(filename, true)) {
-//        for (int i = 0; i <= lastCmd; i++) {
-//          writer.write(lines.get(i) + "\n");
-//        }
-//      } catch (IOException e) {
-//        e.printStackTrace();
-//      }
-//    }
+    Database database = databases.get(databaseName);
+    String filename = database.getDatabaseLogFilePath();
+    File file = new File(filename);
+    if (file.exists() && file.isFile()) {
+      System.out.println("Reading Log...");
+      sqlHandler.evaluate("use " + databaseName, 0); // session?
+      int lastCmd = 0;
+      ArrayList<String> lines = new ArrayList<>();
+      ArrayList<Integer> mSessionInTransactions = new ArrayList<>();
+      ArrayList<Integer> mSessionCommitted = new ArrayList<>();
+      try(InputStreamReader reader = new InputStreamReader(new FileInputStream(file));
+          BufferedReader bufferedReader = new BufferedReader(reader)) {
+        String line;
+        int index = 0;
+        while((line = bufferedReader.readLine()) != null) {
+          if (line.equals("begin transaction")) {
+            mSessionInTransactions.add(index);
+          } else
+          if (line.equals("commit")) {
+            mSessionCommitted.add(index);
+          }
+          lines.add(line);
+          index++;
+        }
+        if (mSessionInTransactions.size() == mSessionCommitted.size()) {
+          lastCmd = lines.size() - 1;
+        } else {
+          lastCmd = mSessionInTransactions.get(mSessionInTransactions.size() - 1);
+        }
+        for (int i = 0; i <= lastCmd; i++) {
+          sqlHandler.evaluate(lines.get(i), 0); // 0?
+        }
+        System.out.println("Read logs completed. Read " + (lastCmd + 1) + " logs");
+      } catch (FileNotFoundException e) {
+        e.printStackTrace();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+      try(FileWriter writer = new FileWriter(filename)) {
+        writer.write("");
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+      try(FileWriter writer = new FileWriter(filename, true)) {
+        for (int i = 0; i <= lastCmd; i++) {
+          writer.write(lines.get(i) + "\n");
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
   }
 
   public void recover() {

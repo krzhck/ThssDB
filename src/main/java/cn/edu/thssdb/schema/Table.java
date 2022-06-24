@@ -28,20 +28,69 @@ public class Table implements Iterable<Row> {
   private ArrayList<Long> xLocks;
   private ArrayList<Long> sLocks;
   private int primaryIndex;
-
   private boolean isPropertyModified;
-
   private int topLock;
 
   // ADD lock variables for S, X locks and etc here.
 
   // TODO: table/tuple level locks
-  public Boolean testSLock(Long sessionId){ return false;}
-  public void takeSLock(Long sessionId) {}
-  public void releaseSLock(Long sessionId){}
-  public Boolean testXLock(Long sessionId){ return false;}
-  public Boolean takeXLock(Long sessionId){ return false;} // 在test成功前提下拿X锁。返回值false表示session之前已拥有这个表的X锁。
-  public void releaseXLock(Long sessionId){}
+//  public Boolean testSLock(Long sessionId){ return false;}
+//  public void takeSLock(Long sessionId) {}
+  public void releaseSLock(Long sessionId){
+    if (sLocks.contains(sessionId)) {
+      sLocks.remove(sessionId);
+      if (sLocks.size() == 0) topLock = 0;
+      else topLock = 1;
+    }
+  }
+
+//  public Boolean testXLock(Long sessionId){ return false;}
+//  public Boolean takeXLock(Long sessionId){ return false;} // 在test成功前提下拿X锁。返回值false表示session之前已拥有这个表的X锁。
+  public void releaseXLock(Long sessionId){
+    if (xLocks.contains(sessionId)) {
+      topLock = 0;
+      xLocks.remove(sessionId);
+    }
+  }
+
+  public int getSLock(long session) {
+    int flag = 0;
+    if (topLock == 2) {
+      if (xLocks.contains(session)) flag = 0;
+      else flag = -1;
+    } else
+    if (topLock == 1) {
+      if (sLocks.contains(session)) flag = 0;
+      else {
+        sLocks.add(session);
+        topLock = 1;
+        flag = 1;
+      }
+    } else
+    if (topLock == 0) {
+      sLocks.add(session);
+      topLock = 1;
+      flag = 1;
+    }
+    return flag;
+  }
+
+  public int getXLock(long session) {
+    int flag = 0;
+    if (topLock == 2) {
+      if (xLocks.contains(session)) flag = 0;
+      else flag = -1;
+    } else
+    if (topLock == 1) {
+      flag = -1;
+    } else
+    if (topLock == 0) {
+      xLocks.add(session);
+      topLock = 2;
+      flag = 1;
+    }
+    return flag;
+  }
 
 
   // Initiate: Table, recover
@@ -76,12 +125,12 @@ public class Table implements Iterable<Row> {
   private void recover() {
     // read from disk for recovering
       try {
-        // TODO lock control
+        lock.readLock().lock();
         ArrayList<Row> rowsOnDisk = deserialize();
         for(Row row: rowsOnDisk)
           this.index.put(row.getEntries().get(this.primaryIndex), row);
       }finally {
-        // TODO lock control
+        lock.readLock().unlock();
       }
   }
 
@@ -91,23 +140,21 @@ public class Table implements Iterable<Row> {
 
   public Row get(Cell primaryCell){
     try {
-      // TODO lock control
+      lock.readLock().lock();
       return this.index.get(primaryCell);
     }finally {
-      // TODO lock control
+      lock.readLock().unlock();
     }
   }
 
   public void insert(Row row) {
     try {
-      // TODO lock control
       lock.writeLock().lock();
       this.checkRowValidInTable(row);
       if(this.containsRow(row))
         throw new DuplicateKeyException();
       this.index.put(row.getEntries().get(this.primaryIndex), row);
       }finally {
-      // TODO lock control
       lock.writeLock().unlock();
     }
   }
@@ -145,7 +192,6 @@ public class Table implements Iterable<Row> {
 
   public void delete(Row row) {
     try {
-      // TODO lock control.
       lock.writeLock().lock();
       isPropertyModified = true;
       this.checkRowValidInTable(row);
@@ -153,7 +199,6 @@ public class Table implements Iterable<Row> {
         throw new KeyNotExistException();
       this.index.remove(row.getEntries().get(this.primaryIndex));
     }finally {
-      // TODO lock control.
       lock.writeLock().unlock();
     }
   }
@@ -173,7 +218,7 @@ public class Table implements Iterable<Row> {
 
   public void update(Cell primaryCell, Row newRow) {
     try {
-      // TODO lock control.
+      lock.writeLock().lock();
       this.checkRowValidInTable(newRow);
       Row oldRow = this.get(primaryCell);
       if(this.containsRow(newRow) && primaryCell.equals(newRow.getEntries().get(this.primaryIndex)) == false)
@@ -181,7 +226,7 @@ public class Table implements Iterable<Row> {
       this.index.remove(primaryCell);
       this.index.put(newRow.getEntries().get(this.primaryIndex), newRow);
     }finally {
-      // TODO lock control.
+      lock.writeLock().unlock();
     }
   }
 
@@ -260,17 +305,17 @@ public class Table implements Iterable<Row> {
 
   public void persist(){
     try {
-      // TODO add lock control.
+      lock.writeLock().lock();
       serialize();
     }
     finally {
-      // TODO add lock control.
+      lock.writeLock().unlock();
     }
   }
 
   public void dropTable(){ // remove table data file
     try {
-      // TODO lock control.
+      lock.writeLock().lock();
       File tableFolder = new File(this.getTableFolderPath());
       if (!tableFolder.exists() ? !tableFolder.mkdirs() : !tableFolder.isDirectory())
         throw new FileIOException(this.getTableFolderPath() + " when dropTable");
@@ -279,7 +324,7 @@ public class Table implements Iterable<Row> {
         throw new FileIOException(this.getTablePath() + " when dropTable");
     }
     finally {
-      // TODO lock control.
+      lock.writeLock().unlock();
     }
   }
 
@@ -290,61 +335,6 @@ public class Table implements Iterable<Row> {
   public ArrayList<Column> getColumns() {
     return columns;
   }
-
-  public int getSLock(long session) {
-    int flag = 0;
-    if (topLock == 2) {
-      if (xLocks.contains(session)) flag = 0;
-      else flag = -1;
-    } else
-    if (topLock == 1) {
-      if (sLocks.contains(session)) flag = 0;
-      else {
-        sLocks.add(session);
-        topLock = 1;
-        flag = 1;
-      }
-    } else
-    if (topLock == 0) {
-      sLocks.add(session);
-      topLock = 1;
-      flag = 1;
-    }
-    return flag;
-  }
-
-  public int getXLock(long session) {
-    int flag = 0;
-    if (topLock == 2) {
-      if (xLocks.contains(session)) flag = 0;
-      else flag = -1;
-    } else
-    if (topLock == 1) {
-      flag = -1;
-    } else
-    if (topLock == 0) {
-      xLocks.add(session);
-      topLock = 2;
-      flag = 1;
-    }
-    return flag;
-  }
-
-  public void freeSLock(long session) {
-    if (sLocks.contains(session)) {
-      sLocks.remove(session);
-      if (sLocks.size() == 0) topLock = 0;
-      else topLock = 1;
-    }
-  }
-
-  public void freeXLock(long session) {
-    if (xLocks.contains(session)) {
-      topLock = 0;
-      xLocks.remove(session);
-    }
-  }
-
 
   // Operations involving logic expressions.
 

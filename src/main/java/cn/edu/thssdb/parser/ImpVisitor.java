@@ -555,7 +555,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
                     if (lock_res.contains(-1)) {
                         for (String name : table_names) {
                             Table cur_table = cur_database.get(name);
-                            cur_table.freeSLock(session);
+                            cur_table.releaseSLock(session);
                         }
                         manager.getSessionsInLocks().add(session);
                     }
@@ -580,7 +580,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
                         {
                             for (String name : table_names) {
                                 Table cur_table = cur_database.get(name);
-                                cur_table.freeSLock(session);
+                                cur_table.releaseSLock(session);
                             }
                         }
                     }
@@ -595,7 +595,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
             try {
                 for (String name : table_names) {
                     Table cur_table = cur_database.get(name);
-                    cur_table.freeSLock(session);
+                    cur_table.releaseSLock(session);
                 }
                 return cur_database.select(cur_query_table, col_selected, distinct);
             } catch (Exception e) {
