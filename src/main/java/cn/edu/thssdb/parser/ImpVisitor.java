@@ -222,7 +222,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
             return null;
         }
     }
-    
+
     @Override
     public String visitShow_table_stmt(SQLParser.Show_table_stmtContext ctx) {
         try {
@@ -675,7 +675,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
                                 Table cur_table = cur_database.get(name);
                                 cur_table.releaseSLock(session);
                             }
-                            String msg = "Database " + cur_database.getDatabaseName() + " has uncommitted changes!";
+                            String msg = "Exception: There exists uncommitted changes!";
                             return new QueryResult(msg);
                         }
                     }
