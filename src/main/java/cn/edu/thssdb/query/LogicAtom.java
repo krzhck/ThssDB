@@ -9,5 +9,4 @@ public enum LogicAtom {
         if (this == num || this == str || this == nul) return LogicType.atom;
         return LogicType.comp;
     }
-
 }
