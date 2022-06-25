@@ -6,10 +6,7 @@ package cn.edu.thssdb.parser;
 import cn.edu.thssdb.common.Global;
 import cn.edu.thssdb.exception.*;
 import cn.edu.thssdb.query.*;
-import cn.edu.thssdb.schema.Column;
-import cn.edu.thssdb.schema.Database;
-import cn.edu.thssdb.schema.Manager;
-import cn.edu.thssdb.schema.Table;
+import cn.edu.thssdb.schema.*;
 import cn.edu.thssdb.type.*;
 import javafx.util.Pair;
 
@@ -125,7 +122,6 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
     }
 
     /**
-     * TODO
      创建表格
      */
     @Override
@@ -255,12 +251,11 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
     public String visitShow_db_stmt(SQLParser.Show_db_stmtContext ctx) {return null;}
 
     /**
-     * TODO
      表格项插入
      */
     @Override
     public String visitInsert_stmt(SQLParser.Insert_stmtContext ctx) {
-        Database the_database = GetCurrentDB();
+        Database cur_database = GetCurrentDB();
         String table_name = ctx.table_name().getText().toLowerCase();
         ArrayList<String> column_names_list = new ArrayList<>();
         if (ctx.column_name() != null && ctx.column_name().size() != 0) {
@@ -270,15 +265,75 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         }
         String[] column_names = column_names_list.toArray(new String[column_names_list.size()]);
 
-        for (SQLParser.Value_entryContext item : ctx.value_entry()) {
-            String[] values = visitValue_entry(item);
-            try {
-                the_database.insert(table_name, column_names, values);
-            } catch (Exception e) {
-                return e.toString();
+        if (manager.getSessionsInTransactions().contains(session)) {
+            Table cur_table = cur_database.get(table_name);
+            while (true) {
+                if(!manager.getSessionsInLocks().contains(session)) {
+                    int get_lock = cur_table.getXLock(session);
+                    if(get_lock!=-1) {
+                        if(get_lock==1) {
+                            ArrayList<String> tmp = manager.x_lockDict.get(session);
+                            tmp.add(table_name);
+                            manager.x_lockDict.put(session,tmp);
+                        }
+                        break;
+                    }
+                    else {
+                        manager.getSessionsInLocks().add(session);
+                    }
+                }
+                else {
+                    if(manager.getSessionsInLocks().get(0)==session)  //只查看阻塞队列开头session
+                    {
+                        int get_lock = cur_table.getXLock(session);
+                        if(get_lock!=-1)
+                        {
+                            if(get_lock==1)
+                            {
+                                ArrayList<String> tmp = manager.x_lockDict.get(session);
+                                tmp.add(table_name);
+                                manager.x_lockDict.put(session,tmp);
+                            }
+                            manager.getSessionsInLocks().remove(0);
+                            break;
+                        }
+                    }
+                }
+                try
+                {
+                    Thread.sleep(500);   // 休眠3秒
+                } catch (Exception e) {
+                    System.out.println("Got an exception!");
+                }
+            }
+            for (SQLParser.Value_entryContext subcontext : ctx.value_entry())
+            {
+                String[] values = visitValue_entry(subcontext);
+                try {
+//                    if(column_names == null || column_names.length == 0)
+//                    {
+//                        Row r = new Row(values);
+//                        cur_table.insert_single_row(values);
+//                    }
+//                    else
+//                    {
+                        cur_table.insert_single_row(column_names, values);
+//                    }
+                } catch (Exception e) {
+                    return e.toString();
+                }
             }
         }
-
+        else {
+            for (SQLParser.Value_entryContext item : ctx.value_entry()) {
+                String[] values = visitValue_entry(item);
+                try {
+                    cur_database.insert(table_name, column_names, values);
+                } catch (Exception e) {
+                    return e.toString();
+                }
+            }
+        }
         return "Inserted " + ctx.value_entry().size() + " rows.";
     }
 
@@ -301,7 +356,6 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
     }
 
     /**
-     * TODO
      表格项删除
      */
     @Override
@@ -320,7 +374,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
         if(manager.getSessionsInTransactions().contains(session))
         {
             //manager.getSessionsInLocks().add(session);
-            Table the_table = the_database.getTable(table_name);
+            Table the_table = the_database.get(table_name);
             while(true)
             {
                 if(!manager.getSessionsInLocks().contains(session))   //新加入一个session
@@ -466,7 +520,6 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
     }
 
     /**
-     * TODO
      表格项更新
      */
     @Override
@@ -484,9 +537,59 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
                 return e.toString();
             }
         }
+
+        Logic logic = Multiple_conditionVisitor(multiple_condition);
+        if (manager.getSessionsInTransactions().contains(session)) {
+            Table table = database.get(table_name);
+            while (true) {
+                if (!manager.getSessionsInLocks().contains(session)) { // 新加入一个session
+                    int get_lock = table.getXLock(session);
+                    if (get_lock != -1) {
+                        if(get_lock==1)
+                        {
+                            ArrayList<String> tmp = manager.x_lockDict.get(session);
+                            tmp.add(table_name);
+                            manager.x_lockDict.put(session,tmp);
+                        }
+                        break;
+                    }
+                    else {
+                        manager.getSessionsInLocks().add(session);
+                    }
+                }
+                else {
+                    if(manager.getSessionsInLocks().get(0)==session)  //只查看阻塞队列开头session
+                    {
+                        int get_lock = table.getXLock(session);
+                        if(get_lock!=-1)
+                        {
+                            if(get_lock==1)
+                            {
+                                ArrayList<String> tmp = manager.x_lockDict.get(session);
+                                tmp.add(table_name);
+                                manager.x_lockDict.put(session,tmp);
+                            }
+                            manager.getSessionsInLocks().remove(0);
+                            break;
+                        }
+                    }
+                }
+                try
+                {
+                    Thread.sleep(500);
+                } catch (Exception e) {
+                    System.out.println("Got an exception!");
+                }
+            }
+
+            try {
+                return database.update_rows(table_name, column_name, s_value, logic);
+            } catch (Exception e) {
+                return e.toString();
+            }
+        }
         else{
             try {
-                Logic logic = Multiple_conditionVisitor(multiple_condition);
                 return database.update_rows(table_name, column_name, s_value, logic);
             } catch (Exception e) {
                 return e.toString();
@@ -582,6 +685,8 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
                                 Table cur_table = cur_database.get(name);
                                 cur_table.releaseSLock(session);
                             }
+                            String msg = "Database " + cur_database.getDatabaseName() + " has uncommitted changes!";
+                            return new QueryResult(msg);
                         }
                     }
                 }

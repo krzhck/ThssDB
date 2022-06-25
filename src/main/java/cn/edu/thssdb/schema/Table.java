@@ -148,6 +148,7 @@ public class Table implements Iterable<Row> {
   }
 
   public void insert(Row row) {
+    isPropertyModified = true;
     try {
       lock.writeLock().lock();
       this.checkRowValidInTable(row);
@@ -160,6 +161,7 @@ public class Table implements Iterable<Row> {
   }
 
   public void insert_single_row(String[] columnNames, String[] values){
+    isPropertyModified = true;
     ArrayList<Cell> cell_list = new ArrayList<>();
     if (columnNames.length == 0) {
       int len = values.length;
@@ -217,6 +219,7 @@ public class Table implements Iterable<Row> {
   }
 
   public void update(Cell primaryCell, Row newRow) {
+    isPropertyModified = true;
     try {
       lock.writeLock().lock();
       this.checkRowValidInTable(newRow);
@@ -233,6 +236,7 @@ public class Table implements Iterable<Row> {
   public String update_rows(String column_name, String value, Logic logic){
     TableIterator it = (TableIterator) iterator();
     int update_count = 0;
+    isPropertyModified = true;
     while(it.hasNext()){
       Row row = it.next();
       MultiRow multiRow = new MultiRow(row, this);
@@ -337,8 +341,6 @@ public class Table implements Iterable<Row> {
   }
 
   // Operations involving logic expressions.
-
-
 
 
   // Operations

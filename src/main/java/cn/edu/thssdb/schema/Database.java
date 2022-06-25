@@ -293,17 +293,8 @@ public class Database {
     return result.toString() + "}\n";
   }
 
-  public Table getTable(String tablename) {
-    try {
-      lock.readLock().lock();
-      if(!tableMap.containsKey(tablename)) throw new TableNotExistException(databaseName);
-      return tableMap.get(tablename);
-    } finally {
-      lock.readLock().unlock();
-    }
-  }
   public String delete(String tableName, Logic logic) {
-    return getTable(tableName).delete(logic);
+    return get(tableName).delete(logic);
   }
 
 //  public void delete(String tablename) throws IOException, PageNotExistException {

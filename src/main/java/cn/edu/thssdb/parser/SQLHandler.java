@@ -43,7 +43,9 @@ public class SQLHandler {
                 if (!manager.currentSessions.contains(session)){
                     manager.currentSessions.add(session);
                     ArrayList<String> x_lock_tables = new ArrayList<>();
+                    ArrayList<String> s_lock_tables = new ArrayList<>();
                     manager.x_lockDict.put(session, x_lock_tables);
+                    manager.s_lockDict.put(session, s_lock_tables);
                 } else{
                     System.out.println("session already in a transaction.");
                 }
