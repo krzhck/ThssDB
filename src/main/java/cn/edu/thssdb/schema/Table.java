@@ -16,9 +16,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static cn.edu.thssdb.type.ColumnType.STRING;
 
-
-// TODO lock control, variables init.
-
 public class Table implements Iterable<Row> {
   ReentrantReadWriteLock lock;
   private String databaseName;
@@ -31,11 +28,6 @@ public class Table implements Iterable<Row> {
   private boolean isPropertyModified;
   private int topLock;
 
-  // ADD lock variables for S, X locks and etc here.
-
-  // TODO: table/tuple level locks
-//  public Boolean testSLock(Long sessionId){ return false;}
-//  public void takeSLock(Long sessionId) {}
   public void releaseSLock(Long sessionId){
     if (sLocks.contains(sessionId)) {
       sLocks.remove(sessionId);
@@ -44,8 +36,6 @@ public class Table implements Iterable<Row> {
     }
   }
 
-//  public Boolean testXLock(Long sessionId){ return false;}
-//  public Boolean takeXLock(Long sessionId){ return false;} // 在test成功前提下拿X锁。返回值false表示session之前已拥有这个表的X锁。
   public void releaseXLock(Long sessionId){
     if (xLocks.contains(sessionId)) {
       topLock = 0;
@@ -92,8 +82,6 @@ public class Table implements Iterable<Row> {
     return flag;
   }
 
-
-  // Initiate: Table, recover
   public Table(String databaseName, String tableName, Column[] columns) {
     this.lock = new ReentrantReadWriteLock();
     this.databaseName = databaseName;
@@ -113,7 +101,6 @@ public class Table implements Iterable<Row> {
     if(this.primaryIndex < 0)
       throw new NoPrimaryKeyException(this.tableName);
 
-    // TODO initiate lock status.
     this.xLocks = new ArrayList<>();
     this.sLocks = new ArrayList<>();
     this.topLock = 0;
@@ -133,10 +120,6 @@ public class Table implements Iterable<Row> {
         lock.readLock().unlock();
       }
   }
-
-
-  // Operations: get, insert, delete, update, dropTable, you can add other operations.
-  // remember to use locks to fill the TODOs
 
   public Row get(Cell primaryCell){
     try {
@@ -225,7 +208,7 @@ public class Table implements Iterable<Row> {
       this.checkRowValidInTable(newRow);
       Row oldRow = this.get(primaryCell);
       if(this.containsRow(newRow) && primaryCell.equals(newRow.getEntries().get(this.primaryIndex)) == false)
-        throw new DuplicateKeyException();   // 要么删并插入，要么抛出异常
+        throw new DuplicateKeyException();
       this.index.remove(primaryCell);
       this.index.put(newRow.getEntries().get(this.primaryIndex), newRow);
     }finally {
@@ -404,7 +387,6 @@ public class Table implements Iterable<Row> {
   public String toString(){
     StringBuilder s = new StringBuilder("Table " + this.tableName + ": ");
     for (Column column : this.columns) s.append("\t(").append(column.toString()).append(')');
-//    return s.toString() + "\n";
     return s.toString();
   }
 

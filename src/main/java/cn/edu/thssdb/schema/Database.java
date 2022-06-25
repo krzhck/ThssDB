@@ -17,10 +17,6 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-
-// TODO: lock control
-// TODO Query: please also add other functions needed at Database level.
-
 public class Database {
 
   private String databaseName;
@@ -40,7 +36,6 @@ public class Database {
 
   // Operations: (basic) persist, create tables
   private void persist() {
-    // 把各表的元数据写到磁盘上
     for (Table table : this.tableMap.values()) {
       String filename = table.getTableMetaPath();
       ArrayList<Column> columns = table.columns;
@@ -119,7 +114,6 @@ public class Database {
     System.out.println("! try to recover database " + this.databaseName);
     File tableFolder = new File(this.getDatabaseTableFolderPath());
     File[] files = tableFolder.listFiles();
-//        for(File f: files) System.out.println("...." + f.getName());
     if (files == null) return;
 
     for (File file : files) {
@@ -201,9 +195,7 @@ public class Database {
     return table.update_rows(column_name, value, logic);
   }
 
-  // TODO Query: please also add other functions needed at Database level.
   public QueryResult select(QueryTable queryTable, String[] returnColumns, boolean isDistinct) {
-    // TODO: support select operations
     try {
       lock.readLock().lock();
       QueryResult queryResult = new QueryResult(queryTable, returnColumns, isDistinct);
@@ -219,12 +211,6 @@ public class Database {
       lock.readLock().unlock();
     }
   }
-
-//  public String select(QueryTable[] queryTables) {
-//    // TODO: support select operations
-//    QueryResult queryResult = new QueryResult(queryTables);
-//    return null;
-//  }
 
   public QueryTable getSingleQueryTable(String tableName) {
     try {
@@ -296,22 +282,4 @@ public class Database {
   public String delete(String tableName, Logic logic) {
     return get(tableName).delete(logic);
   }
-
-//  public void delete(String tablename) throws IOException, PageNotExistException {
-//    try {
-//      lock.writeLock().lock();
-//      if(!tableMap.containsKey(tablename)) throw new TableNotExistException(databaseName);
-//      String filename =  dataDir + databaseName + "_" + tablename + ".properties";
-//      File file = new File(filename);
-//      if (file.isFile()) {
-//        file.delete();
-//      }
-//      Table table = tableMap.get(tablename);
-//      table.drop(); //TODO
-//      tableMap.remove(tablename);
-//      persist();
-//    } finally {
-//      lock.writeLock().unlock();
-//    }
-//  }
 }

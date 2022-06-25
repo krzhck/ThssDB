@@ -53,7 +53,7 @@ public class Column implements Comparable<Column> {
     ColumnType columnType = column.getColumnType();
     if (s.equals(Global.ENTRY_NULL)) {
       if (column.cantBeNull())
-        throw new NullValueException(column.getColumnName());       // 该列不可为null
+        throw new NullValueException(column.getColumnName());
       else{
         Cell tmp = new Cell(Global.ENTRY_NULL);
         tmp.value = null;
@@ -62,7 +62,6 @@ public class Column implements Comparable<Column> {
     }
     switch (columnType) {
       case INT:
-        //return new Cell(Integer.valueOf(s));
         return new Cell(Double.valueOf(s).intValue());
       case LONG:
         return new Cell(Long.valueOf(s));
@@ -72,7 +71,7 @@ public class Column implements Comparable<Column> {
         return new Cell(Double.valueOf(s));
       case STRING:
         String sWithoutQuotes = s.substring(1,s.length()-1);
-        if (sWithoutQuotes.length() > column.getMaxLength())                     // 长度超出该列限制
+        if (sWithoutQuotes.length() > column.getMaxLength())
           throw new ValueExceedException(column.getColumnName(), s.length(), column.getMaxLength(), "(when parse row)");
         return new Cell(sWithoutQuotes);
       default:

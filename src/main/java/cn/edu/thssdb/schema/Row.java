@@ -63,14 +63,10 @@ public class Row implements Serializable {
       Column column = columnList.get(i);
       try {
         cellList.add(Column.parseEntry(sItem, column));
-//                System.out.println(Column.parseEntry(sItem, column).toString());
       }catch(NumberFormatException e){
-//                System.out.println("        " + s);
-//                System.out.println("        " + columnList.toString());
-        throw new ValueFormatInvalidException("(when parse row from a String&ColumnList)");           // XXX.valueOf类型转换出错。
+        throw new ValueFormatInvalidException("(when parse row from a String&ColumnList)");
       }
     }
-//        System.out.println("            ? "+ entryList.toString());
     return new Row(cellList);
   }
 

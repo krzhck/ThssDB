@@ -12,9 +12,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-// TODO: add lock control
-// TODO: complete readLog() function according to writeLog() for recovering transaction
-
 public class Manager {
   private HashMap<String, Database> databases;
   private static ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
@@ -30,7 +27,6 @@ public class Manager {
   }
 
   public Manager() {
-    // TODO: init possible additional variables
     databases = new HashMap<>();
     currentDatabase = null;
     sqlHandler = new SQLHandler(this);
@@ -52,7 +48,6 @@ public class Manager {
       Database database = databases.get(databaseName);
       database.dropDatabase();
       databases.remove(databaseName);
-//      persist(); // ?
     } finally {
       lock.writeLock().unlock();
     }
@@ -161,14 +156,13 @@ public class Manager {
     }
   }
 
-  // TODO: read Log in transaction to recover.
   public void readLog(String databaseName) {
     Database database = databases.get(databaseName);
     String filename = database.getDatabaseLogFilePath();
     File file = new File(filename);
     if (file.exists() && file.isFile()) {
       System.out.println("Reading Log...");
-      sqlHandler.evaluate("use " + databaseName, 0); // session?
+      sqlHandler.evaluate("use " + databaseName, 0);
       int lastCmd = 0;
       ArrayList<String> lines = new ArrayList<>();
       ArrayList<Integer> mSessionInTransactions = new ArrayList<>();
@@ -193,7 +187,7 @@ public class Manager {
           lastCmd = mSessionInTransactions.get(mSessionInTransactions.size() - 1);
         }
         for (int i = 0; i <= lastCmd; i++) {
-          sqlHandler.evaluate(lines.get(i), 0); // 0?
+          sqlHandler.evaluate(lines.get(i), 0);
         }
         System.out.println("Read logs completed. Read " + (lastCmd + 1) + " logs");
       } catch (FileNotFoundException e) {
