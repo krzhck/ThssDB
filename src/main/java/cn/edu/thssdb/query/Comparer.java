@@ -21,5 +21,4 @@ public class Comparer {
                 this.mValue = null;
         }
     }
-
 }

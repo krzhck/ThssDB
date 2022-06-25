@@ -7,8 +7,6 @@ import cn.edu.thssdb.type.BoolType;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Queue;
 
 /**
  * Designed for the select query with join/filtering...
@@ -23,7 +21,6 @@ public class QueryTable implements Iterator<Row> {
   ArrayList<Row> currentRow;
   Logic selectLogic = null;
   Logic joinLogic = null;
-//  protected Queue<Row> buf;
 
 
   public QueryTable(Table table) {

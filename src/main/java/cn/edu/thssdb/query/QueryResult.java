@@ -8,7 +8,6 @@ import cn.edu.thssdb.schema.Table;
 import cn.edu.thssdb.type.QueryResultType;
 
 import java.util.*;
-import java.util.function.Predicate;
 
 /**
  * Designed to hold general query result:
@@ -62,10 +61,10 @@ public class QueryResult {
     }
   }
 
-  public QueryResult(QueryTable[] queryTables) {
-    this.resultType = QueryResultType.SELECT;
-    this.errorMessage = null;
-  }
+//  public QueryResult(QueryTable[] queryTables) {
+//    this.resultType = QueryResultType.SELECT;
+//    this.errorMessage = null;
+//  }
 
   public QueryResult(String errorMessage){
     resultType = QueryResultType.MESSAGE;

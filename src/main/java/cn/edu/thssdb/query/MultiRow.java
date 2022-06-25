@@ -53,16 +53,6 @@ public class MultiRow extends Row {
         }
     }
 
-    public void setValue(String columnName, String value) {
-        int index = getColumnIndex(columnName);
-        Column column = getColumnType(index);
-        try {
-            entries.set(index, new Cell(column.parseColumn(value)));
-        } catch (Exception e) {
-            throw new AssignDifferentTypeException(columnName, value);
-        }
-    }
-
     public int getColumnIndex(String target) {
         if (target.contains(".")) {
             String[] targetList = target.split("\\.");
