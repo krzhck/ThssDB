@@ -273,7 +273,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
                     }
                 }
                 else {
-                    if(manager.getSessionsInLocks().get(0)==session)  //只查看阻塞队列开头session
+                    if(manager.getSessionsInLocks().get(0)==session)
                     {
                         int get_lock = cur_table.getXLock(session);
                         if(get_lock!=-1)
@@ -291,7 +291,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
                 }
                 try
                 {
-                    Thread.sleep(500);   // 休眠3秒
+                    Thread.sleep(500);
                 } catch (Exception e) {
                     System.out.println("Got an exception!");
                 }
@@ -300,15 +300,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
             {
                 String[] values = visitValue_entry(subcontext);
                 try {
-//                    if(column_names == null || column_names.length == 0)
-//                    {
-//                        Row r = new Row(values);
-//                        cur_table.insert_single_row(values);
-//                    }
-//                    else
-//                    {
-                        cur_table.insert_single_row(column_names, values);
-//                    }
+                    cur_table.insert_single_row(column_names, values);
                 } catch (Exception e) {
                     return e.toString();
                 }
