@@ -222,17 +222,7 @@ public class ImpVisitor extends SQLBaseVisitor<Object> {
             return null;
         }
     }
-
-//    @Override
-//    public String visitShow_table_stmt(SQLParser.Show_table_stmtContext ctx) {
-//        try {
-//            return GetCurrentDB().toString();
-//        }
-//        catch (Exception e) {
-//            return e.getMessage();
-//        }
-//    }
-
+    
     @Override
     public String visitShow_table_stmt(SQLParser.Show_table_stmtContext ctx) {
         try {
